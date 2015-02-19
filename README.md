@@ -14,7 +14,7 @@ pip install zabbix-containers-sender
 
 [![Documentation Status](https://readthedocs.org/projects/docker-zabbix-sender/badge/?version=latest)](https://readthedocs.org/projects/docker-zabbix-sender/?badge=latest)
 
-The documentation is hosted on [ReadTheDocs](http://docker-zabbix-sender.readthedocs.org/en/latest/). 
+The stable documentation is available on [ReadTheDocs](http://docker-zabbix-sender.readthedocs.org/en/stable/). 
 
 # License
 

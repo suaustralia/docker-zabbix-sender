@@ -16,6 +16,37 @@ from .collector import ContainerStatsEmitter
 
 LOGGER = logging.getLogger(__name__)
 
+class ZabbixSenderProcess(subprocess.Popen):
+    """A 'zabbix_sender' process with stdin piped.
+    """
+    def __init__(self, **kwargs):
+        subprocess.Popen.__init__(self, ZabbixSenderProcess.cmdline(**kwargs), stdin=subprocess.PIPE)
+
+    @classmethod
+    def cmdline(cls, 
+            input_file,
+            config_file=None, 
+            zabbix_server=None, 
+            port=None, 
+            with_timestamps=False, 
+            real_time=False):
+        """
+        :return collection containing the 'zabbix_sender' command line to execute.
+        """
+        cmdline = ['zabbix_sender', '--input-file', input_file]
+        if config_file:
+            cmdline.extend(['--config', config_file])
+        if zabbix_server:
+            cmdline.extend(['--zabbix-server', zabbix_server])
+        if port:
+            cmdline.extend(['--port', port])
+        if with_timestamps:
+            cmdline.append('--with-timestamps')
+        if real_time:
+            cmdline.append('--real-time')
+        return cmdline
+
+
 def zabbix_sender(input_file, config_file=None, zabbix_server=None, port=None, with_timestamps=False):
     """Simple wrapper around `zabbix_sender` utility.
 
@@ -40,10 +71,7 @@ class ZabbixSenderEndPoint(EndPoint):
         :param kwargs: optional arguments given to the `zabbix_sender` function.
         """
         EndPoint.__init__(self)
-        self._kwargs = kwargs
-        self.pid = os.getpid()
-        fd, self.output_file = tempfile.mkstemp()
-        os.close(fd)
+        self.zabbix_sender_p = ZabbixSenderProcess(input_file='-', **kwargs)
 
     def emit(self, events):
         if not any(events):
@@ -51,10 +79,11 @@ class ZabbixSenderEndPoint(EndPoint):
         fmt = "{hostname} {key} {value}\n"
         if events[0].has_key('timestamp'):
             fmt = "{hostname} {key} {timestamp} {value}\n"
-        with open(self.output_file, 'w') as ostr:
-            for event in events:
-                ostr.write(fmt.format(**event))
-        zabbix_sender(self.output_file, **self._kwargs)
+        for event in events:
+            self.zabbix_sender_p.stdin.write(fmt.format(**event))
+
+    def close(self):
+        self.zabbix_sender_p.communicate()
 
 def run(args=None):
     """Main entry point. Runs until SIGTERM or SIGINT is emitted.

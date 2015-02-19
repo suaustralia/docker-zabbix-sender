@@ -15,6 +15,9 @@ exec(open('docker_zabbix_sender/version.py').read())
 setup(
     name="docker-zabbix-sender",
     version=version,
+    author="Tristan Carel",
+    author_email="tristan.carel@gmail.com",
+    url="https://github.com/dockermeetupsinbordeaux/docker-zabbix-sender",
     description="Push Docker containers information to Zabbix",
     packages=['docker_zabbix_sender'],
     install_requires=requirements,

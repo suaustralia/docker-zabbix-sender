@@ -18,7 +18,7 @@ setup(
     author="Tristan Carel",
     author_email="tristan.carel@gmail.com",
     url="https://github.com/dockermeetupsinbordeaux/docker-zabbix-sender",
-    download_url="https://github.com/dockermeetupsinbordeaux/docker-zabbix-sender/tarball/v0.1"
+    download_url="https://github.com/dockermeetupsinbordeaux/docker-zabbix-sender/tarball/v0.1",
     description="Push Docker containers information to Zabbix",
     packages=['docker_zabbix_sender'],
     install_requires=requirements,

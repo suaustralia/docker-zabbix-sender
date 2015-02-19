@@ -1,9 +1,9 @@
 # zabbix-containers-sender
 [![Build Status](https://travis-ci.org/dockermeetupsinbordeaux/docker-zabbix-sender.svg)](https://travis-ci.org/dockermeetupsinbordeaux/docker-zabbix-sender/settings)
 
-# Installation
 Leverage Docker statistic streams to push containers info to Zabbix
 
+# Installation
 The latest stable installation is always available on PyPi.
 
 ```shell

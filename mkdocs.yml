@@ -1,0 +1,8 @@
+site_name: Docker Zabbix Sender Documentation
+site_description: Daemon feeding Zabbix with Docker container statistics with zabbix_sender
+site_favicon:
+site_url: docker-zabbix-sender.readthedocs.org
+repo_url: https://github.com/dockermeetupsinbordeaux/docker-zabbix-sender
+theme: readthedocs
+pages:
+- [index.md, Home]

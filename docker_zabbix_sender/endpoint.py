@@ -1,6 +1,8 @@
 # encoding: utf-8
 
+import inspect
 import logging
+import pkg_resources
 import socket
 
 __all__ = [
@@ -18,10 +20,11 @@ class EndPoint(object):
     """
     def __init__(self):
         self.fqdn = socket.getfqdn()
-        self.metrics_plugins = self._load_metrics_plugins()
         self._logger = logging.getLogger("end-point")
+        self.metrics_plugins = self._load_metrics_plugins()
 
     IGNORED_METRIC_KEYS = {'name', 'timestamp'}
+    METRICS_GROUP = 'docker_zabbix_sender.metrics'
 
     def container_hostname(self, container_metrics):
         """Get "real" hostname of a container.
@@ -87,7 +90,16 @@ class EndPoint(object):
         """Loads objects registered with the '[docker-zabbix-sender.metrics]' entry point.
         :return dict of name -> value
         """
-        return {}
+        metrics = {}
+        for entrypoint in pkg_resources.iter_entry_points(group=EndPoint.METRICS_GROUP):
+            try:
+                plugin = entrypoint.load()
+                metrics[entrypoint.name] = plugin
+                assert hasattr(plugin, '__call__')
+                self._logger.info("Registered metrics entrypoint '%s'", entrypoint.name)
+            except Exception:
+                self._logger.exception("Could not load entrypoint %s", entrypoint.name)
+        return metrics
 
 
 class PPrintEndPoint(EndPoint):

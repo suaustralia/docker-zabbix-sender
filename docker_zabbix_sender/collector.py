@@ -9,7 +9,6 @@ import threading
 
 from docker import Client
 from docker.utils import kwargs_from_env
-from urllib3.exceptions import ReadTimeoutError
 
 from .RWLock import RWLock
 
@@ -43,6 +42,7 @@ class ContainerStats(threading.Thread):
         self.memory_percentage = 0.0
         self.network_rx = 0.0
         self.network_tx = 0.0
+        self.timestamp = int(time.time())
         self._docker = docker
         self._lock = RWLock()
         self._response = None
@@ -67,6 +67,7 @@ class ContainerStats(threading.Thread):
                     cpu_percent = self._calculate_cpu_percent(previous_cpu, previous_system, stats)
                 start = False
                 self._lock.acquire_write()
+                self.timestamp = int(time.time())
                 self.cpu_percent = cpu_percent
                 self.memory = float(stats['memory_stats']['usage'])
                 self.memory_limit = float(stats['memory_stats']['limit'])
@@ -79,8 +80,6 @@ class ContainerStats(threading.Thread):
         except AttributeError:
             # raise in urllib3 when the stream is closed while waiting for stuff to read
             pass
-        except ReadTimeoutError:
-            pass # not sure I should stop this
         finally:
             self.shutdown() # ensure stream is closed
 
@@ -132,7 +131,7 @@ class ContainerStatsEmitter(threading.Thread):
     def __init__(self, client, endpoint_func, delay=30):
         """
         :param client: Docker client
-        
+
         :param endpoint_func: a callable instance which is given aggregated statistics repeadetly.
 
         :param delay: Number of seconds between 2 notifications of `endpoint_func`
@@ -166,18 +165,19 @@ class ContainerStatsEmitter(threading.Thread):
             def append(stats):
                 payload.append({
                     'name': stats.name,
-                    'id': stats.container,
-                    'cpu_percent': stats.cpu_percent,
-                    'memory': stats.memory,
-                    'memory_limit': stats.memory_limit,
-                    'memory_percentage': stats.memory_percentage,
-                    'network_rx': stats.network_rx,
-                    'network_tx': stats.network_tx,
+                    'docker.container.id': stats.container,
+                    'docker.container.cpu_percent': stats.cpu_percent,
+                    'docker.container.memory': stats.memory,
+                    'docker.container.memory_limit': stats.memory_limit,
+                    'docker.container.memory_percentage': stats.memory_percentage,
+                    'docker.container.network_rx': stats.network_rx,
+                    'docker.container.network_tx': stats.network_tx,
+                    'timestamp': stats.timestamp,
                 })
             for stats in container_stats.values():
                 stats.emit(append)
             # emit to endpoint_func
-            self._endpoint_func(payload)
+            self._endpoint_func(self._client, payload)
         self._logger.info("waiting for all collectors threads to terminate.")
         for container in container_stats.values():
             container.shutdown()
@@ -190,7 +190,7 @@ class ContainerStatsEmitter(threading.Thread):
         call the `Thread.join` method afterward."""
         self._logger.info("user asked for daemon termination.")
         self._stop = True
-    
+
     def _should_run(self):
         """Internal method used to know if the show must go on"""
         return not self._stop
@@ -204,12 +204,21 @@ def run(args=None):
         args = sys.argv[1:]
         FORMAT = '%(asctime)-15s %(levelname)-8s %(name)s %(message)s'
         logging.basicConfig(format=FORMAT, level=logging.INFO)
-    def _log_payload(payload):
-        """Pretty-print payload given by `ContainerStatsEmitter`
-        """
-        import pprint
-        pprint.pprint(payload)
-    emitter = ContainerStatsEmitter(Client(**kwargs_from_env()), _log_payload, 3)
+    # def _log_payload(payload):
+    #     """Pretty-print payload given by `ContainerStatsEmitter`
+    #     """
+    #     import pprint
+    #     pprint.pprint(payload)
+    kwargs  = kwargs_from_env()
+    import platform
+    if platform.system() == 'Darwin':
+        # MacOS: we are using Boot2Docker
+        # see https://github.com/docker/docker-py/blob/master/docs/boot2docker.md
+        kwargs['tls'].assert_hostname = False
+    docker_client = Client(**kwargs)
+
+    from zabbix_sender import ZabbixSenderEndPoint
+    emitter = ContainerStatsEmitter(docker_client, ZabbixSenderEndPoint(), 3)
     def _stop_emitter(signum, frame):
         """Handle for signal catching used to stop the `ContainerStatsEmitter` thread
         """

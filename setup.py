@@ -35,6 +35,6 @@ setup(
     ],
     entry_points = """
         [console_scripts]
-        docker-zabbix-sender = docker_zabbix_sender.stats:run
+        docker-zabbix-sender = docker_zabbix_sender.collector:run
     """
 )

@@ -17,11 +17,18 @@ __all__ = [
     'ContainerStats'
 ]
 
-def docker_client():
-    return Client(**kwargs_from_env())
+class ContainerStats(object):
+    """Provides a set of metrics about a Docker container.
 
-class ContainerStats:
+    Those metrics are updated repeatedly (about every second) by
+    `stats` method available in Docker remote API since v17.
+
+    TODO: make it a thread
+    """
+
     def __init__(self, container):
+        """:param container: The Docker container identifier to monitor.
+        """
         self.container = container
         self._lock = RWLock()
         self._response = None
@@ -33,6 +40,13 @@ class ContainerStats:
         self.network_tx = 0.0
 
     def collect(self, client):
+        """Collect container metrics repeatedly. Does not returns
+        unless the Docker stats stream is closed or the `close` method
+        is called.
+
+        :param client: Docker client
+        :type client: Client
+        """
         assert isinstance(client, Client)
         self.name = client.inspect_container(self.container)['Name'][1:]
         previous_cpu = 0.0
@@ -43,6 +57,7 @@ class ContainerStats:
         stream = client._stream_helper(self._response, decode=True)
         try:
             for stats in stream:
+                # strongly inspired from docker's code.
                 mem_percent = float(stats['memory_stats']['usage']) / stats['memory_stats']['limit'] * 100.0
                 cpu_percent = 0.0
                 if not start:
@@ -67,6 +82,13 @@ class ContainerStats:
             self.close()
 
     def emit(self, consumer_func):
+        """Provide consumer access to the container stats.
+
+        :param: `consumer_func`: callable instance. This parameter is called with
+        this instance given in parameter.
+
+        TODO: pass a dict() of values directly.
+        """
         self._lock.acquire_read()
         try:
             consumer_func(self)
@@ -75,12 +97,19 @@ class ContainerStats:
 
 
     def close(self):
+        """Stop collecting the container metrics.
+        """
         if self._response:
-            print "closing stream"
             self._response.raw.close()
             self._response = None
 
     def _calculate_cpu_percent(self, previous_cpu, previous_system, stats):
+        """Compute CPU percentage.
+
+        strongly inspired from docker's code.
+
+        :return: cpu percentage
+        """
         cpu_percent = 0.0
         # calculate the change for the cpu usage of the container in between readings
         cpu_delta = float(stats['cpu_stats']['cpu_usage']['total_usage']) - previous_cpu
@@ -92,7 +121,19 @@ class ContainerStats:
 
 
 class ContainerStatsEmitter(threading.Thread):
-    def __init__(self, client, endpoint_func, delay):
+    """Maintain a list of `ContainerStats` collecting metrics of several Docker containers.
+    Repeatedly aggregates all metrics and push them to a consumer. The list of container collectors
+    is updated according to containers started, stopped, ...
+    """
+
+    def __init__(self, client, endpoint_func, delay=30):
+        """
+        :param client: Docker client
+        
+        :param endpoint_func: a callable instance which is given aggregated statistics repeadetly.
+
+        :param delay: Number of seconds between 2 notifications of `endpoint_func`
+        """
         threading.Thread.__init__(self)
         self._client = client
         self._endpoint_func = endpoint_func
@@ -144,25 +185,39 @@ class ContainerStatsEmitter(threading.Thread):
             thread.join()
         self._logger.info("Collectors terminated successfully. See you bye!")
 
-    
-    def _should_run(self):
-        return not self._stop
-
-    def stop(self):
+    def shutdown(self):
+        """Ask thread termination. Method returns immediatly. You may
+        call the `Thread.join` method afterward."""
         self._logger.info("Begin script termination.")
         self._stop = True
-        
-def log_all(payload):
-    import pprint
-    pprint.pprint(payload)
+    
+    def _should_run(self):
+        """Internal method used to know if the show must go on"""
+        return not self._stop
 
-if __name__ == '__main__':
-    FORMAT = '%(asctime)-15s %(levelname)-8s %(name)s %(message)s'
-    logging.basicConfig(format=FORMAT, level=logging.INFO)
-    emitter = ContainerStatsEmitter(docker_client(), log_all, 3)
-    def stop_emitter(signum, frame):
-        emitter.stop()
-    signal.signal(signal.SIGTERM, stop_emitter)
-    signal.signal(signal.SIGINT, stop_emitter)
+def run(args=None):
+    """Main entry point. Runs until SIGTERM or SIGINT is emitted.
+
+    :param args: Optional arguments, use `sys.argv[1:]` otherwise
+    """
+    if args is None:
+        args = sys.argv[1:]
+        FORMAT = '%(asctime)-15s %(levelname)-8s %(name)s %(message)s'
+        logging.basicConfig(format=FORMAT, level=logging.INFO)
+    def _log_payload(payload):
+        """Pretty-print payload given by `ContainerStatsEmitter`
+        """
+        import pprint
+        pprint.pprint(payload)
+    emitter = ContainerStatsEmitter(Client(**kwargs_from_env()), _log_payload, 3)
+    def _stop_emitter(signum, frame):
+        """Handle for signal catching used to stop the `ContainerStatsEmitter` thread
+        """
+        emitter.shutdown()
+    signal.signal(signal.SIGTERM, _stop_emitter)
+    signal.signal(signal.SIGINT, _stop_emitter)
     emitter.start()
     signal.pause()
+
+if __name__ == '__main__':
+    run()

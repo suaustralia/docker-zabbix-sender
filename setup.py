@@ -33,4 +33,8 @@ setup(
         'Topic :: Utilities',
         'License :: OSI Approved :: Apache Software License',
     ],
+    entry_points = """
+        [console_scripts]
+        docker-zabbix-sender = docker_zabbix_sender.stats:run
+    """
 )

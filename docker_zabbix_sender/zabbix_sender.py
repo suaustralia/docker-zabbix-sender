@@ -32,7 +32,7 @@ def zabbix_sender(input_file, config_file=None, zabbix_server=None, port=None, w
     if with_timestamps:
         cmdline.append('--with-timestamps')
     LOGGER.info("spawning process: " + " ".join(cmdline))
-    subprocess.check_call(cmdline)
+    #subprocess.check_call(cmdline)
 
 class ZabbixSenderEndPoint(EndPoint):
     def __init__(self, **kwargs):
@@ -68,7 +68,7 @@ def run(args=None):
 
     from .version import version
     parser = argparse.ArgumentParser(
-        description="""Provides Zabbix Docker containers statistics running on this host.""")
+        description="""Provides Zabbix Docker containers statistics running on a Docker daemon.""")
     parser.add_argument("--tlsverify",
         action='store',
         choices=["true", "false"],

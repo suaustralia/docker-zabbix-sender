@@ -36,9 +36,10 @@ class ContainerStats(threading.Thread):
         self.cpu_percent = 0.0
         self.memory = 0.0
         self.memory_limit = 0.0
-        self.memory_percentage = 0.0
+        self.memory_percent = 0.0
         self.network_rx = 0.0
         self.network_tx = 0.0
+        self.stats = None
         self.timestamp = int(time.time())
         self._docker = docker
         self._lock = RWLock()
@@ -65,10 +66,11 @@ class ContainerStats(threading.Thread):
                 start = False
                 self._lock.acquire_write()
                 self.timestamp = int(time.time())
+                self.stats = stats
                 self.cpu_percent = cpu_percent
                 self.memory = float(stats['memory_stats']['usage'])
                 self.memory_limit = float(stats['memory_stats']['limit'])
-                self.memory_percentage = mem_percent
+                self.memory_percent = mem_percent
                 self.network_rx = float(stats['network']['rx_bytes'])
                 self.network_tx = float(stats['network']['tx_bytes'])
                 self._lock.release()
@@ -163,13 +165,14 @@ class ContainerStatsEmitter(threading.Thread):
                 def append(stats):
                     payload.append({
                         'name': stats.name,
-                        'docker.container.id': stats.container,
-                        'docker.container.cpu_percent': stats.cpu_percent,
-                        'docker.container.memory': stats.memory,
-                        'docker.container.memory_limit': stats.memory_limit,
-                        'docker.container.memory_percentage': stats.memory_percentage,
-                        'docker.container.network_rx': stats.network_rx,
-                        'docker.container.network_tx': stats.network_tx,
+                        'id': stats.container,
+                        'stats': stats.stats,
+                        'cpu_percent': stats.cpu_percent,
+                        'memory': stats.memory,
+                        'memory_limit': stats.memory_limit,
+                        'memory_percent': stats.memory_percent,
+                        'network_rx': stats.network_rx,
+                        'network_tx': stats.network_tx,
                         'timestamp': stats.timestamp,
                     })
                 for stats in container_stats.values():

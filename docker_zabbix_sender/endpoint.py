@@ -23,8 +23,9 @@ class EndPoint(object):
         self._logger = logging.getLogger("end-point")
         self.metrics_plugins = self._load_metrics_plugins()
 
-    IGNORED_METRIC_KEYS = {'name', 'timestamp'}
+    IGNORED_METRIC_KEYS = {'name', 'timestamp', 'stats'}
     METRICS_GROUP = 'docker_zabbix_sender.metrics'
+    EVENT_KEY_PREFIX = 'docker.container.'
 
     def container_hostname(self, container_metrics):
         """Get "real" hostname of a container.
@@ -43,10 +44,10 @@ class EndPoint(object):
 
         :param client: Docker client
 
-        :params metrics: list of dict with containers information, one dict per container.
+        :params containers_metrics: list of dict with containers information, one dict per container.
         """
-        events = self._metrics_to_events(containers_metrics)
-        self._enrich_with_plugins(client, containers_metrics, events)
+        events, statistics = self._metrics_to_events(containers_metrics)
+        self._enrich_with_plugins(client, statistics, events)
         self.emit(events)
 
     def emit(self, events):
@@ -64,7 +65,9 @@ class EndPoint(object):
         :return list of events
         """
         events = []
+        stats = []
         for metrics in containers_metrics:
+            stats.append(metrics['stats'])
             hostname = self.container_hostname(metrics)
             timestamp = metrics['timestamp']
             for key, value in metrics.items():
@@ -73,22 +76,29 @@ class EndPoint(object):
                 events.append({
                     'hostname': hostname,
                     'timestamp': timestamp,
-                    'key': key,
+                    'key': EndPoint.EVENT_KEY_PREFIX + key,
                     'value': value,
                 })
-        return events
+        return events, stats
 
-    def _enrich_with_plugins(self, client, containers_metrics, events):
-        """Ask registered metrics plugins to produce additional events according to new containers metrics"""
+    def _enrich_with_plugins(self, client, statistics, events):
+        """Ask registered metrics plugins to produce additional events according to new containers metrics
+
+        :param client: Docker client given to the metrics plugins
+
+        :param statistics: list of tuple providing container statistics, one dict per container.
+
+        :param events: events collection, to be filled by metrics plugins
+        """
         for name, collector in self.metrics_plugins.items():
             try:
-                events.extend(collector(self.fqdn, client, containers_metrics))
+                events.extend(collector(self.fqdn, client, statistics))
             except Exception, e:
                 self._logger.exception("Could not collect metrics from plugin %s", name)
 
     def _load_metrics_plugins(self):
         """Loads objects registered with the '[docker-zabbix-sender.metrics]' entry point.
-        :return dict of name -> value
+        :return dict of plugin_name -> callable_object
         """
         metrics = {}
         for entrypoint in pkg_resources.iter_entry_points(group=EndPoint.METRICS_GROUP):

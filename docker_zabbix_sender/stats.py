@@ -3,12 +3,29 @@
 """Provides collection of events emitters"""
 
 import time
+from . import EndPoint
 
-def containers_count(host_fqdn, docker_client, containers_metrics):
-    """Emit events providing:
+def containers_count(host_fqdn, docker_client, statistics):
+    """
+    Emit events providing:
       - number of containers
       - number of running containers
       - number of crashed containers
+
+    :param host_fqdn: FQDN of the host where the docker-zabbix-daemon is running, for instance docker.acme.com
+    :type host_fqdn: string
+
+    :param docker_client: instance of docker.Client see http://docker-py.readthedocs.org/en/latest/api/
+    :type docker_client: docker.Client
+
+    :param statistics: List of dicts providing collected container statistics. see Docker stats API call on https://docs.docker.com/reference/api/docker_remote_api_v1.17/#get-container-stats-based-on-resource-usage
+
+    :return: list of dicts providing additional events to push to Zabbix.
+    Each dict is composed of 4 keys:
+        - hostname
+        - timestamp
+        - key
+        - value
     """
     running = 0
     crashed = 0
@@ -29,7 +46,7 @@ def containers_count(host_fqdn, docker_client, containers_metrics):
         {
             'hostname': host_fqdn,
             'timestamp': now,
-            'key': 'docker.container.count.' + key,
+            'key': EndPoint.EVENT_KEY_PREFIX + 'count.' + key,
             'value': value
         }
         for key, value in data.items()

@@ -9,6 +9,7 @@ import threading
 
 from docker import Client
 from docker.utils import kwargs_from_env
+from urllib3.exceptions import ReadTimeoutError
 
 from .RWLock import RWLock
 
@@ -17,7 +18,7 @@ __all__ = [
     'ContainerStats'
 ]
 
-class ContainerStats(object):
+class ContainerStats(threading.Thread):
     """Provides a set of metrics about a Docker container.
 
     Those metrics are updated repeatedly (about every second) by
@@ -26,35 +27,37 @@ class ContainerStats(object):
     TODO: make it a thread
     """
 
-    def __init__(self, container):
-        """:param container: The Docker container identifier to monitor.
+    def __init__(self, container, docker):
         """
+        :param container: The Docker container identifier to monitor.
+
+        :param docker: Docker client
+        :type docker: Client
+        """
+        threading.Thread.__init__(self)
         self.container = container
-        self._lock = RWLock()
-        self._response = None
+        self.name = docker.inspect_container(container)['Name'][1:]
         self.cpu_percent = 0.0
         self.memory = 0.0
         self.memory_limit = 0.0
         self.memory_percentage = 0.0
         self.network_rx = 0.0
         self.network_tx = 0.0
+        self._docker = docker
+        self._lock = RWLock()
+        self._response = None
 
-    def collect(self, client):
+    def run(self):
         """Collect container metrics repeatedly. Does not returns
-        unless the Docker stats stream is closed or the `close` method
+        unless the Docker stats stream is closed or the `shutdown` method
         is called.
-
-        :param client: Docker client
-        :type client: Client
         """
-        assert isinstance(client, Client)
-        self.name = client.inspect_container(self.container)['Name'][1:]
         previous_cpu = 0.0
         previous_system = 0.0
         start = True
-        url = client._url("/containers/{0}/stats".format(self.container))
-        self._response = client._get(url, stream=True)
-        stream = client._stream_helper(self._response, decode=True)
+        url = self._docker._url("/containers/{0}/stats".format(self.container))
+        self._response = self._docker._get(url, stream=True)
+        stream = self._docker._stream_helper(self._response, decode=True)
         try:
             for stats in stream:
                 # strongly inspired from docker's code.
@@ -79,7 +82,7 @@ class ContainerStats(object):
         except ReadTimeoutError:
             pass # not sure I should stop this
         finally:
-            self.close()
+            self.shutdown() # ensure stream is closed
 
     def emit(self, consumer_func):
         """Provide consumer access to the container stats.
@@ -96,7 +99,7 @@ class ContainerStats(object):
             self._lock.release()
 
 
-    def close(self):
+    def shutdown(self):
         """Stop collecting the container metrics.
         """
         if self._response:
@@ -143,7 +146,6 @@ class ContainerStatsEmitter(threading.Thread):
 
     def run(self):
         container_stats = dict()
-        all_threads = []
         while self._should_run():
             # update list of container stats
             running_containers = set(map(lambda c: c['Id'], self._client.containers()))
@@ -152,14 +154,12 @@ class ContainerStatsEmitter(threading.Thread):
             stopped_containers = monitored_containers - running_containers
             for container in stopped_containers:
                 self._logger.info("container has stopped: %s", container)
-                container_stats.pop(container).close()
+                container_stats.pop(container).shutdown()
             for container in started_containers:
                 self._logger.info("container has started: %s", container)
-                stats = ContainerStats(container)
+                stats = ContainerStats(container, self._client)
                 container_stats[container] = stats
-                t = threading.Thread(target=stats.collect, args=(self._client,))
-                all_threads.append(t)
-                t.start()
+                stats.start()
             time.sleep(self._delay)
             # collect results
             payload = []
@@ -178,17 +178,17 @@ class ContainerStatsEmitter(threading.Thread):
                 stats.emit(append)
             # emit to endpoint_func
             self._endpoint_func(payload)
-        self._logger.info("Waiting for all collectors threads to terminate.")
+        self._logger.info("waiting for all collectors threads to terminate.")
         for container in container_stats.values():
-            container.close()
-        for thread in all_threads:
-            thread.join()
-        self._logger.info("Collectors terminated successfully. See you bye!")
+            container.shutdown()
+        for container in container_stats.values():
+            container.join()
+        self._logger.info("collectors terminated successfully. See you bye!")
 
     def shutdown(self):
         """Ask thread termination. Method returns immediatly. You may
         call the `Thread.join` method afterward."""
-        self._logger.info("Begin script termination.")
+        self._logger.info("user asked for daemon termination.")
         self._stop = True
     
     def _should_run(self):

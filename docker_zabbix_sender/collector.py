@@ -132,6 +132,7 @@ class ContainerStatsEmitter(threading.Thread):
         :param client: Docker client
 
         :param endpoint_func: a callable instance which is given aggregated statistics repeadetly.
+        The endpoint_func may also have a 'close' callable attribute.
 
         :param delay: Number of seconds between 2 notifications of `endpoint_func`
         """
@@ -187,6 +188,8 @@ class ContainerStatsEmitter(threading.Thread):
                 container.shutdown()
             for container in container_stats.values():
                 container.join()
+            if hasattr(self._endpoint_func, 'close'):
+                self._endpoint_func.close()
             self._logger.info("collectors terminated successfully. See you bye!")
 
     def shutdown(self):

@@ -56,6 +56,11 @@ class EndPoint(object):
         """
         raise NotImplementedError()
 
+    def close(self):
+        """Release allocated resources. Meant to be overloaded
+        """
+        pass
+
     def _metrics_to_events(self, containers_metrics):
         """Transform list of dict containing containers metrics to a list of dict with the following keys:
             'host', 'key', 'value'

@@ -32,7 +32,7 @@ def zabbix_sender(input_file, config_file=None, zabbix_server=None, port=None, w
     if with_timestamps:
         cmdline.append('--with-timestamps')
     LOGGER.info("spawning process: " + " ".join(cmdline))
-    #subprocess.check_call(cmdline)
+    subprocess.check_call(cmdline)
 
 class ZabbixSenderEndPoint(EndPoint):
     def __init__(self, **kwargs):

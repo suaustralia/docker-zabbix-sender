@@ -160,6 +160,8 @@ class ContainerStatsEmitter(threading.Thread):
                     container_stats[container] = stats
                     stats.start()
                 time.sleep(self._delay)
+                if not self._should_run():
+                    return
                 # collect results
                 payload = []
                 def append(stats):

@@ -2,13 +2,10 @@
 
 import json
 import logging
-import signal
-import sys
 import time
 import threading
 
 from docker import Client
-from docker.utils import kwargs_from_env
 
 from .RWLock import RWLock
 
@@ -196,39 +193,3 @@ class ContainerStatsEmitter(threading.Thread):
     def _should_run(self):
         """Internal method used to know if the show must go on"""
         return not self._stop
-
-def run(args=None):
-    """Main entry point. Runs until SIGTERM or SIGINT is emitted.
-
-    :param args: Optional arguments, use `sys.argv[1:]` otherwise
-    """
-    if args is None:
-        args = sys.argv[1:]
-        FORMAT = '%(asctime)-15s %(levelname)-8s %(name)s %(message)s'
-        logging.basicConfig(format=FORMAT, level=logging.INFO)
-    # def _log_payload(payload):
-    #     """Pretty-print payload given by `ContainerStatsEmitter`
-    #     """
-    #     import pprint
-    #     pprint.pprint(payload)
-    kwargs  = kwargs_from_env()
-    import platform
-    if platform.system() == 'Darwin':
-        # MacOS: we are using Boot2Docker
-        # see https://github.com/docker/docker-py/blob/master/docs/boot2docker.md
-        kwargs['tls'].assert_hostname = False
-    docker_client = Client(**kwargs)
-
-    from zabbix_sender import ZabbixSenderEndPoint
-    emitter = ContainerStatsEmitter(docker_client, ZabbixSenderEndPoint(), 3)
-    def _stop_emitter(signum, frame):
-        """Handle for signal catching used to stop the `ContainerStatsEmitter` thread
-        """
-        emitter.shutdown()
-    signal.signal(signal.SIGTERM, _stop_emitter)
-    signal.signal(signal.SIGINT, _stop_emitter)
-    emitter.start()
-    signal.pause()
-
-if __name__ == '__main__':
-    run()

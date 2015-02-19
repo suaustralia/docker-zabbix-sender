@@ -1,13 +1,18 @@
 # encoding: utf-8
 
+import argparse
 import logging
 import os
 import subprocess
+import signal
+import sys
 import tempfile
 
 from docker import Client
+from docker.utils import kwargs_from_env
 
 from .endpoint import EndPoint
+from .collector import ContainerStatsEmitter
 
 LOGGER = logging.getLogger(__name__)
 
@@ -50,3 +55,72 @@ class ZabbixSenderEndPoint(EndPoint):
             for event in events:
                 ostr.write(fmt.format(**event))
         zabbix_sender(self.output_file, **self._kwargs)
+
+def run(args=None):
+    """Main entry point. Runs until SIGTERM or SIGINT is emitted.
+
+    :param args: Optional arguments, use `sys.argv[1:]` otherwise
+    """
+    if args is None:
+        args = sys.argv[1:]
+        FORMAT = '%(asctime)-15s %(levelname)-8s %(name)s %(message)s'
+        logging.basicConfig(format=FORMAT, level=logging.INFO)
+
+    from .version import version
+    parser = argparse.ArgumentParser(
+        description="""Provides Zabbix Docker containers statistics running on this host.""")
+    parser.add_argument("--tlsverify",
+        action='store',
+        choices=["true", "false"],
+        default='true',
+        help="Use TLS and verify the remote Docker daemon. Default is %(default)s"
+    )
+    parser.add_argument('-v', '--version',
+        action='version',
+        version='%(prog)s ' + version
+    )
+    parser.add_argument('-c', '--config',
+        metavar="<file>",
+        help="Absolute path to the zabbix agent configuration file"
+    )
+    parser.add_argument('-z', '--zabbix-server',
+        metavar='<server>',
+        help='Hostname or IP address of Zabbix server'
+    )
+    parser.add_argument('-p', '--port',
+        metavar='<server port>',
+        help='Specify port number of server trapper running on the server. Default is 10051'
+    )
+    parser.add_argument('-i', '--interval',
+        metavar='<sec>',
+        default=30,
+        help='Specify Zabbix update interval (in sec). Default is %(default)s'
+    )
+    args = parser.parse_args(args)
+    kwargs  = kwargs_from_env()
+    if not args.tlsverify.lower() in ("yes", "true", "t", "1"):
+        kwargs['tls'].assert_hostname = False
+    docker_client = Client(**kwargs)
+    docker_client.info()
+
+    from zabbix_sender import ZabbixSenderEndPoint
+    emitter = ContainerStatsEmitter(
+        docker_client,
+        ZabbixSenderEndPoint(
+            config_file=args.config,
+            zabbix_server=args.zabbix_server,
+            port=args.port,
+            with_timestamps=True
+        ),
+        args.interval)
+    def _stop_emitter(signum, frame):
+        """Handle for signal catching used to stop the `ContainerStatsEmitter` thread
+        """
+        emitter.shutdown()
+    signal.signal(signal.SIGTERM, _stop_emitter)
+    signal.signal(signal.SIGINT, _stop_emitter)
+    emitter.start()
+    signal.pause()
+
+if __name__ == '__main__':
+    run()

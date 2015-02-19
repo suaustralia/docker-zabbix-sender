@@ -39,7 +39,7 @@ setup(
     ],
     entry_points = """
         [console_scripts]
-        docker-zabbix-sender = docker_zabbix_sender.collector:run
+        docker-zabbix-sender = docker_zabbix_sender.zabbix_sender:run
         [docker_zabbix_sender.metrics]
         containers-count = docker_zabbix_sender.stats:containers_count
     """

@@ -145,45 +145,47 @@ class ContainerStatsEmitter(threading.Thread):
 
     def run(self):
         container_stats = dict()
-        while self._should_run():
-            # update list of container stats
-            running_containers = set(map(lambda c: c['Id'], self._client.containers()))
-            monitored_containers = set(container_stats.keys())
-            started_containers = running_containers - monitored_containers
-            stopped_containers = monitored_containers - running_containers
-            for container in stopped_containers:
-                self._logger.info("container has stopped: %s", container)
-                container_stats.pop(container).shutdown()
-            for container in started_containers:
-                self._logger.info("container has started: %s", container)
-                stats = ContainerStats(container, self._client)
-                container_stats[container] = stats
-                stats.start()
-            time.sleep(self._delay)
-            # collect results
-            payload = []
-            def append(stats):
-                payload.append({
-                    'name': stats.name,
-                    'docker.container.id': stats.container,
-                    'docker.container.cpu_percent': stats.cpu_percent,
-                    'docker.container.memory': stats.memory,
-                    'docker.container.memory_limit': stats.memory_limit,
-                    'docker.container.memory_percentage': stats.memory_percentage,
-                    'docker.container.network_rx': stats.network_rx,
-                    'docker.container.network_tx': stats.network_tx,
-                    'timestamp': stats.timestamp,
-                })
-            for stats in container_stats.values():
-                stats.emit(append)
-            # emit to endpoint_func
-            self._endpoint_func(self._client, payload)
-        self._logger.info("waiting for all collectors threads to terminate.")
-        for container in container_stats.values():
-            container.shutdown()
-        for container in container_stats.values():
-            container.join()
-        self._logger.info("collectors terminated successfully. See you bye!")
+        try:
+            while self._should_run():
+                # update list of container stats
+                running_containers = set(map(lambda c: c['Id'], self._client.containers()))
+                monitored_containers = set(container_stats.keys())
+                started_containers = running_containers - monitored_containers
+                stopped_containers = monitored_containers - running_containers
+                for container in stopped_containers:
+                    self._logger.info("container has stopped: %s", container)
+                    container_stats.pop(container).shutdown()
+                for container in started_containers:
+                    self._logger.info("container has started: %s", container)
+                    stats = ContainerStats(container, self._client)
+                    container_stats[container] = stats
+                    stats.start()
+                time.sleep(self._delay)
+                # collect results
+                payload = []
+                def append(stats):
+                    payload.append({
+                        'name': stats.name,
+                        'docker.container.id': stats.container,
+                        'docker.container.cpu_percent': stats.cpu_percent,
+                        'docker.container.memory': stats.memory,
+                        'docker.container.memory_limit': stats.memory_limit,
+                        'docker.container.memory_percentage': stats.memory_percentage,
+                        'docker.container.network_rx': stats.network_rx,
+                        'docker.container.network_tx': stats.network_tx,
+                        'timestamp': stats.timestamp,
+                    })
+                for stats in container_stats.values():
+                    stats.emit(append)
+                # emit to endpoint_func
+                self._endpoint_func(self._client, payload)
+        finally:
+            self._logger.info("waiting for all collectors threads to terminate.")
+            for container in container_stats.values():
+                container.shutdown()
+            for container in container_stats.values():
+                container.join()
+            self._logger.info("collectors terminated successfully. See you bye!")
 
     def shutdown(self):
         """Ask thread termination. Method returns immediatly. You may

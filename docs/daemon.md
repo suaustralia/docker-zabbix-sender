@@ -57,6 +57,9 @@ For each container, the daemon will provide the following information:
     - zabbix key: *docker.container.cpu.kernel_percent*
     - unit: percentage
     - type: Numeric (float)
+* CPU count:
+    - zabbix key: *docker.container.cpu.count*
+    - type: Numeric (unsigned)
 * Memory allocated:
     - zabbix key: *docker.container.memory.used*
     - unit: bytes

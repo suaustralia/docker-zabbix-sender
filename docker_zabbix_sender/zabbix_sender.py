@@ -109,6 +109,7 @@ def run(args=None):
     parser.add_argument('-i', '--interval',
         metavar='<sec>',
         default=30,
+        type=int,
         help='Specify Zabbix update interval (in sec). Default is %(default)s'
     )
     parser.add_argument('-r', '--real-time',

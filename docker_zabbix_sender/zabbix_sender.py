@@ -23,12 +23,12 @@ class ZabbixSenderProcess(subprocess.Popen):
         subprocess.Popen.__init__(self, ZabbixSenderProcess.cmdline(**kwargs), stdin=subprocess.PIPE)
 
     @classmethod
-    def cmdline(cls, 
+    def cmdline(cls,
             input_file,
-            config_file=None, 
-            zabbix_server=None, 
-            port=None, 
-            with_timestamps=False, 
+            config_file=None,
+            zabbix_server=None,
+            port=None,
+            with_timestamps=False,
             real_time=False):
         """
         :return collection containing the 'zabbix_sender' command line to execute.
@@ -53,7 +53,11 @@ class ZabbixSenderEndPoint(EndPoint):
         :param kwargs: optional arguments given to the `zabbix_sender` function.
         """
         EndPoint.__init__(self)
-        self.zabbix_sender_p = ZabbixSenderProcess(input_file='-', **kwargs)
+        self.zabbix_sender_p = ZabbixSenderProcess(
+            input_file='-',
+            with_timestamps=True,,
+            **kwargs
+        )
 
     def emit(self, events):
         if not any(events):
@@ -107,6 +111,10 @@ def run(args=None):
         default=30,
         help='Specify Zabbix update interval (in sec). Default is %(default)s'
     )
+    parser.add_argument('-r', '--real-time',
+        action='store_true',
+        help="zabbix_sender push metrics to Zabbix one by one as soon as they are sent."
+    )
     args = parser.parse_args(args)
     kwargs  = kwargs_from_env()
     if not args.tlsverify.lower() in ("yes", "true", "t", "1"):
@@ -121,7 +129,7 @@ def run(args=None):
             config_file=args.config,
             zabbix_server=args.zabbix_server,
             port=args.port,
-            with_timestamps=True
+            real_time=args.real_time,
         ),
         args.interval)
     def _stop_emitter(signum, frame):

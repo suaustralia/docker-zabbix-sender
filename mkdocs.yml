@@ -6,6 +6,7 @@ repo_url: https://github.com/dockermeetupsinbordeaux/docker-zabbix-sender
 theme: readthedocs
 pages:
 - [index.md, Home]
+- [getting_started.md,Getting Started]
 - [daemon.md, Daemon script]
 - [metrics.md, Metrics]
 - [boot2docker.md, Boot2Docker]

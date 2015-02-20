@@ -33,7 +33,8 @@ class ContainerStats(threading.Thread):
         threading.Thread.__init__(self)
         self.container = container
         self.name = docker.inspect_container(container)['Name'][1:]
-        self.cpu_percent = 0.0
+        self.user_cpu_percent = 0.0
+        self.kernel_cpu_percent = 0.0
         self.memory = 0.0
         self.memory_limit = 0.0
         self.memory_percent = 0.0
@@ -50,7 +51,9 @@ class ContainerStats(threading.Thread):
         unless the Docker stats stream is closed or the `shutdown` method
         is called.
         """
-        previous_cpu = 0.0
+        previous_user_cpu = 0.0
+        previous_kernel_cpu = 0.0
+        previous_total_cpu = 0.0
         previous_system = 0.0
         start = True
         url = self._docker._url("/containers/{0}/stats".format(self.container))
@@ -60,21 +63,30 @@ class ContainerStats(threading.Thread):
             for stats in stream:
                 # strongly inspired from docker's code.
                 mem_percent = float(stats['memory_stats']['usage']) / stats['memory_stats']['limit'] * 100.0
-                cpu_percent = 0.0
+                user_cpu_percent = 0.0
+                kernel_cpu_percent = 0.0
                 if not start:
-                    cpu_percent = self._calculate_cpu_percent(previous_cpu, previous_system, stats)
+                    user_cpu_percent, kernel_cpu_percent = self._calculate_cpu_percent(
+                        previous_user_cpu,
+                        previous_kernel_cpu,
+                        previous_system,
+                        stats
+                    )
                 start = False
                 self._lock.acquire_write()
                 self.timestamp = int(time.time())
                 self.stats = stats
-                self.cpu_percent = cpu_percent
+                self.user_cpu_percent = user_cpu_percent
+                self.kernel_cpu_percent = kernel_cpu_percent
                 self.memory = float(stats['memory_stats']['usage'])
                 self.memory_limit = float(stats['memory_stats']['limit'])
                 self.memory_percent = mem_percent
                 self.network_rx = float(stats['network']['rx_bytes'])
                 self.network_tx = float(stats['network']['tx_bytes'])
                 self._lock.release()
-                previous_cpu = stats['cpu_stats']['cpu_usage']['total_usage']
+                previous_user_cpu = stats['cpu_stats']['cpu_usage']['usage_in_usermode']
+                previous_kernel_cpu = stats['cpu_stats']['cpu_usage']['usage_in_kernelmode']
+                previous_total_cpu = stats['cpu_stats']['cpu_usage']['total_usage']
                 previous_system = stats['cpu_stats']['system_cpu_usage']
         except AttributeError:
             # raise in urllib3 when the stream is closed while waiting for stuff to read
@@ -104,21 +116,31 @@ class ContainerStats(threading.Thread):
             self._response.raw.close()
             self._response = None
 
-    def _calculate_cpu_percent(self, previous_cpu, previous_system, stats):
+    def _calculate_cpu_percent(self,
+        previous_user_cpu,
+        previous_kernel_cpu,
+        previous_system,
+        stats
+    ):
         """Compute CPU percentage.
 
         strongly inspired from docker's code.
 
         :return: cpu percentage
         """
-        cpu_percent = 0.0
+        user_cpu_percent = 0.0
+        kernel_cpu_percent = 0.0
         # calculate the change for the cpu usage of the container in between readings
-        cpu_delta = float(stats['cpu_stats']['cpu_usage']['total_usage']) - previous_cpu
+        user_cpu_delta = float(stats['cpu_stats']['cpu_usage']['usage_in_usermode']) - previous_user_cpu
+        kernel_cpu_delta = float(stats['cpu_stats']['cpu_usage']['usage_in_kernelmode']) - previous_kernel_cpu
         # calculate the change for the entire system between readings
         system_delta = float(stats['cpu_stats']['system_cpu_usage']) - previous_system
-        if system_delta > 0.0 and cpu_delta > 0.0:
-            cpu_percent = (cpu_delta / system_delta) * float(len(stats['cpu_stats']['cpu_usage']['percpu_usage'])) * 100.0
-        return cpu_percent
+        if system_delta > 0.0:
+            if user_cpu_delta > 0.0:
+                user_cpu_percent = (user_cpu_delta / system_delta) * float(len(stats['cpu_stats']['cpu_usage']['percpu_usage'])) * 100.0
+            if kernel_cpu_delta > 0.0:
+                kernel_cpu_percent = (kernel_cpu_delta / system_delta) * float(len(stats['cpu_stats']['cpu_usage']['percpu_usage'])) * 100.0
+        return user_cpu_percent, kernel_cpu_percent
 
 
 class ContainerStatsEmitter(threading.Thread):
@@ -170,7 +192,8 @@ class ContainerStatsEmitter(threading.Thread):
                         'name': stats.name,
                         'id': stats.container,
                         'stats': stats.stats,
-                        'cpu_percent': stats.cpu_percent,
+                        'user_cpu_percent': stats.user_cpu_percent,
+                        'kernel_cpu_percent': stats.kernel_cpu_percent,
                         'memory': stats.memory,
                         'memory_limit': stats.memory_limit,
                         'memory_percent': stats.memory_percent,

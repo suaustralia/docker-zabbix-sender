@@ -21,6 +21,10 @@ def dumb_emitter(host_fqdn, docker_client, statistics):
     :type docker_client: docker.Client
 
     :param statistics: List of dicts providing collected container statistics. see Docker stats API call on https://docs.docker.com/reference/api/docker_remote_api_v1.17/#get-container-stats-based-on-resource-usage
+    The dict also contains 2 additionals keys:
+        - name: container name
+        - id: container identifier
+        - timestamp: UNIX time (integer) when statistics were collected
 
     :return: list of dicts providing additional events to push to Zabbix.
     Each dict is composed of 4 keys:

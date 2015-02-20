@@ -61,7 +61,11 @@ class ContainerStats(threading.Thread):
         stream = self._docker._stream_helper(self._response, decode=True)
         try:
             for stats in stream:
-                # strongly inspired from docker's code.
+                stats['timestamp']= int(time.time())
+                # Provides additional fields that can be used by metrics plugins
+                stats['name'] = self.name
+                stats['id'] = self.container
+                # code below is strongly inspired from docker's code.
                 mem_percent = float(stats['memory_stats']['usage']) / stats['memory_stats']['limit'] * 100.0
                 user_cpu_percent = 0.0
                 kernel_cpu_percent = 0.0
@@ -74,7 +78,7 @@ class ContainerStats(threading.Thread):
                     )
                 start = False
                 self._lock.acquire_write()
-                self.timestamp = int(time.time())
+                self.timestamp = stats['timestamp']
                 self.stats = stats
                 self.user_cpu_percent = user_cpu_percent
                 self.kernel_cpu_percent = kernel_cpu_percent

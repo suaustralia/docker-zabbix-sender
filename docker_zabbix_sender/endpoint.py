@@ -36,7 +36,7 @@ class EndPoint(object):
 
 
         """
-        return "docker-{0}.{1}".format(container_metrics['name'], self.fqdn)
+        return "{0}.docker.{1}".format(container_metrics['name'], self.fqdn)
 
     def __call__(self, client, containers_metrics):
         """Method used by collector to emit new metrics to this end-point.

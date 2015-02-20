@@ -90,11 +90,13 @@ Additionally, the daemon provides 3 counters metrics providing containers counti
 
 # Zabbix event hostname
 
-Each pushed event is associated to a hostname representing the concerned container. Hostname is computed (by default) as follow:
+Every pushed event hold the concerned hostname. Hostname for Docker container is computed (by default) as follow:
 
 ```
-docker-{container_name}.{host_fqdn}
+{container_name}.docker.{host_fqdn}
 ```
+
+Where `host_fqdn` is the FQDN of the machine where is running the daemon script.
 
 # Zabbix host registration
 

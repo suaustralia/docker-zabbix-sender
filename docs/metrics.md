@@ -14,7 +14,7 @@ for instance:
 ```python
 def dumb_emitter(host_fqdn, docker_client, statistics):
     """
-    :param host_fqdn: FQDN of the host where the docker-zabbix-daemon is running, for instance docker.acme.com
+    :param host_fqdn: FQDN of the host where the docker-zabbix-daemon is running, for instance docker-daemon.acme.com
     :type host_fqdn: string
 
     :param docker_client: instance of docker.Client see http://docker-py.readthedocs.org/en/latest/api/
@@ -31,13 +31,13 @@ def dumb_emitter(host_fqdn, docker_client, statistics):
     """
     return [
         {
-            'hostname': 'docker-leet_torwald.docker.acme.com',
+            'hostname': 'leet_torwald.docker.docker-daemon.acme.com',
             'timestamp': 1424363786,
             'key': 'docker.container.pgfault',
             'value': 42000,
         },
         {
-            'hostname': 'docker-leet_torwald.docker.acme.com',
+            'hostname': 'docker-leet_torwald.docker.docker-daemon.acme.com',
             'timestamp': 1424363786,
             'key': 'docker.container.pgmajfault',
             'value': 0,
@@ -51,4 +51,4 @@ You can exploit `containers_stats` to build your metrics. If it does not fit you
 
 To declare an event for the host running the daemon script, then you can specify **-** in **hostname** so that it uses hostname in zabbix_agent configuration file.
 
-To declare an event for a container, then follow the [Zabbix event hostname policy](daemon.md#Zabbix event hostname).
+To declare an event for a container, follow the [Zabbix event hostname policy](daemon.md#Zabbix event hostname).

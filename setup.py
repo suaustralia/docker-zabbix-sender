@@ -74,5 +74,6 @@ setup(
         docker-zabbix-sender = docker_zabbix_sender.zabbix_sender:run
         [docker_zabbix_sender.metrics]
         containers-count = docker_zabbix_sender.stats:containers_count
+        cpu_count = docker_zabbix_sender.stats:cpu_count
     """
 )

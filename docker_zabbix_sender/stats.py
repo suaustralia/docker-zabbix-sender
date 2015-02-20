@@ -51,3 +51,14 @@ def containers_count(host_fqdn, docker_client, statistics):
         }
         for key, value in data.items()
     ]
+
+def cpu_count(host_fqdn, docker_client, statistics):
+    """Emit the number of CPU available for each container.
+    """
+    for stat in statistics:
+        yield {
+            'hostname': EndPoint.container_hostname(stat['name']),
+            'timestamp': stat['timestamp'],
+            'key': EndPoint.EVENT_KEY_PREFIX + 'cpu.count',
+            'value': len(stat['cpu_stats']['cpu_usage']['percpu_usage']),
+        }

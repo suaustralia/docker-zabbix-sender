@@ -1,6 +1,6 @@
 # Using with Boot2docker
 
-For usage with boot2docker, there is a helper function in the utils package named `kwargs_from_env`, it will pass any environment variables from Boot2docker to the Docker Client.
+`docker-zabbix-sender` alsos supports MacOs, where Docker daemon is running on a virtual machine.
 
 First run boot2docker in your shell:
 ```bash
@@ -19,7 +19,7 @@ If you're encountering the following error:
 `SSLError: hostname '192.168.59.103' doesn't match 'boot2docker'`, you can:
 
 1. Add an entry to your /etc/hosts file matching boot2docker to the daemon's IP
-1. disable hostname validation (but please consider the security implications
+1. Disable hostname validation (but please consider the security implications
    in doing this)
 
 ```shell

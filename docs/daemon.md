@@ -16,7 +16,7 @@ Zabbix provides an executable titled `zabbix-sender` that allows you to **push**
 
 # Command line interface
 
-CLI pretty much looks like `zabbix-agent`'s. Please refer to output of `--help` option for further information.
+CLI pretty much looks like `zabbix_sender`'s. Actually most options are passed directly to `zabbix_sender` command line utility. Please refer to output of `--help` option for further information.
 
 ```shell
 $ docker-zabbix-sender --help
@@ -40,6 +40,20 @@ optional arguments:
   -i <sec>, --interval <sec>
                         Specify Zabbix update interval (in sec). Default is 30
 ```
+
+# Recommended invokation
+
+The [upstart script](https://github.com/dockermeetupsinbordeaux/docker-zabbix-sender/blob/master/resources/upstart/docker-zabbix-sender.conf) available on the Github repository spawns the daemon as follow:
+
+```shell
+docker-zabbix-sender -c /etc/zabbix/zabbix_agentd.conf --interval 30 --real-time
+```
+
+Most options are directly passed to `zabbix_sender` utility:
+* `-c` option provides location of Zabbix agent configuration. It allows `zabbix_sender` to figure what the Zabbix server is ...
+* `--real-time` option tells `zabbix_sender` to push events to `zabbix_sender` as soon as `docker-zabbix-sender` emits them. They are not stored in a cache by `zabbix_sender`
+
+At last, the `--intervall` tells `docker-zabbix-sender` to emit events to `zabbix_sender` every 30 seconds.
 
 # Provided metrics out of the box
 

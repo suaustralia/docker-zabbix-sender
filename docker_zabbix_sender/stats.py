@@ -44,7 +44,7 @@ def containers_count(host_fqdn, docker_client, statistics):
     }
     return [
         {
-            'hostname': host_fqdn,
+            'hostname': '-',
             'timestamp': now,
             'key': EndPoint.EVENT_KEY_PREFIX + 'count.' + key,
             'value': value

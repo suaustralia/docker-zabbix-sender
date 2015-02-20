@@ -49,21 +49,25 @@ The following Zabbix template provides events for every metric specified below.
 
 For each container, the daemon will provide the following information:
 
-* CPU percentage
-    - zabbix key: *docker.container.cpu_percent*
+* User mode CPU percentage
+    - zabbix key: *docker.container.cpu.user_percent*
     - unit: percentage
     - type: Numeric (float)
-* Memory usage:
-    - zabbix key: *docker.container.memory*
+* Kernel mode CPU percentage
+    - zabbix key: *docker.container.cpu.kernel_percent*
+    - unit: percentage
+    - type: Numeric (float)
+* Memory allocated:
+    - zabbix key: *docker.container.memory.used*
     - unit: bytes
     - type: Numeric (float)
 * Memory limit:
-    - zabbix key: *docker.container.memory_limit*
+    - zabbix key: *docker.container.memory.limit*
     - unit: bytes
     - type: Numeric (float)
 * Memory usage percentage
-    - zabbix_key: *docker.container.memory_percent*
-    - unit: bytes
+    - zabbix_key: *docker.container.memory.percent*
+    - unit: percentage
     - type: Numeric (float)
 * Network packet received, in bytes
     - zabbix key: *docker.container.network_rx*

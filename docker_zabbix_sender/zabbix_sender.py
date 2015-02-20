@@ -86,7 +86,7 @@ def run(args=None):
         default='true',
         help="Use TLS and verify the remote Docker daemon. Default is %(default)s"
     )
-    parser.add_argument('-v', '--version',
+    parser.add_argument('-V', '--version',
         action='version',
         version='%(prog)s ' + version
     )

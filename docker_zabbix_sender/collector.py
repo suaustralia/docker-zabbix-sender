@@ -55,6 +55,8 @@ class ContainerStats(threading.Thread):
         previous_kernel_cpu = 0.0
         previous_total_cpu = 0.0
         previous_system = 0.0
+        previous_network_rx = 0.0
+        previous_network_tx = 0.0
         start = True
         url = self._docker._url("/containers/{0}/stats".format(self.container))
         self._response = self._docker._get(url, stream=True)
@@ -85,13 +87,15 @@ class ContainerStats(threading.Thread):
                 self.memory = float(stats['memory_stats']['usage'])
                 self.memory_limit = float(stats['memory_stats']['limit'])
                 self.memory_percent = mem_percent
-                self.network_rx = float(stats['network']['rx_bytes'])
-                self.network_tx = float(stats['network']['tx_bytes'])
+                self.network_rx = float(stats['network']['rx_bytes']) - previous_network_rx
+                self.network_tx = float(stats['network']['tx_bytes']) - previous_network_tx
                 self._lock.release()
                 previous_user_cpu = stats['cpu_stats']['cpu_usage']['usage_in_usermode']
                 previous_kernel_cpu = stats['cpu_stats']['cpu_usage']['usage_in_kernelmode']
                 previous_total_cpu = stats['cpu_stats']['cpu_usage']['total_usage']
                 previous_system = stats['cpu_stats']['system_cpu_usage']
+                previous_network_rx = float(stats['network']['rx_bytes'])
+                previous_network_tx = float(stats['network']['tx_bytes'])
         except AttributeError:
             # raise in urllib3 when the stream is closed while waiting for stuff to read
             pass

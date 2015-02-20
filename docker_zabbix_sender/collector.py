@@ -156,7 +156,7 @@ class ContainerStatsEmitter(threading.Thread):
                     self._logger.info("container has stopped: %s", container)
                     container_stats.pop(container).shutdown()
                 for container in started_containers:
-                    self._logger.info("container has started: %s", container)
+                    self._logger.info("Monitoring activity of container: %s", container)
                     stats = ContainerStats(container, self._client)
                     container_stats[container] = stats
                     stats.start()

@@ -55,7 +55,7 @@ class ZabbixSenderEndPoint(EndPoint):
         EndPoint.__init__(self)
         self.zabbix_sender_p = ZabbixSenderProcess(
             input_file='-',
-            with_timestamps=True,,
+            with_timestamps=True,
             **kwargs
         )
 

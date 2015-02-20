@@ -48,6 +48,7 @@ setup(
         .. _stats endpoint: https://docs.docker.com/reference/api/docker_remote_api_v1.17/#get-container-stats-based-on-resource-usage
         .. _ReadTheDocs: http://docker-zabbix-sender.readthedocs.org/en/stable/
     """),
+    keywords="docker zabbix monitoring",
     packages=['docker_zabbix_sender'],
     install_requires=[
         'docker-py >= 1.0.0',

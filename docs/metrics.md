@@ -47,8 +47,12 @@ def dumb_emitter(host_fqdn, docker_client, statistics):
 
 You can exploit `containers_stats` to build your metrics. If it does not fit your needs, then you can connect to Docker remote API with the `docker_client`parameter.
 
-# what hostname to choose?
+# What hostname to choose?
 
-To declare an event for the host running the daemon script, then you can specify **-** in **hostname** so that it uses hostname in zabbix_agent configuration file.
+To declare an event for the host running the daemon script, then you can specify **-** in **hostname** key so that it uses hostname in `zabbix_agent` configuration file.
 
-To declare an event for a container, follow the [Zabbix event hostname policy](daemon.md#Zabbix event hostname).
+To declare an event for a container, follow the [Zabbix event hostname policy](daemon.md#Zabbix event hostname). You can use the Python `docker_zabbix_sender.EndPoint.container_hostname` class method to get the proper hostname. It takes the container name in parameter.
+
+# Where to start?
+
+The metrics plugins [source code](https://github.com/dockermeetupsinbordeaux/docker-zabbix-sender/blob/master/docker_zabbix_sender/stats.py) shipped built-in the module can help you writing your owns.

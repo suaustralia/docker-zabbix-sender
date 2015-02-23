@@ -4,11 +4,19 @@
 Leverage Docker statistic streams to push containers info to Zabbix
 
 # Installation
+
+## On bare-metal server
 The latest stable installation is always available on PyPi.
 
 ```shell
 pip install zabbix-containers-sender
 ```
+
+## As a Docker container itself!
+
+The container monitor can also run as a Docker container. An [automated build](https://registry.hub.docker.com/u/dockermeetupsinbordeaux/docker-zabbix-sender/) always provides the latest version.
+
+    docker pull dockermeetupsinbordeaux/docker-zabbix-sender
 
 # Documentation
 

@@ -43,7 +43,9 @@ optional arguments:
 
 # Recommended invokation
 
-The [upstart script](https://github.com/dockermeetupsinbordeaux/docker-zabbix-sender/blob/master/resources/upstart/docker-zabbix-sender.conf) available on the Github repository spawns the daemon as follow:
+## On Bare-metal server
+
+If you prefer to run the daemon where the Docker daemon is running, then you can use the [upstart script](https://github.com/dockermeetupsinbordeaux/docker-zabbix-sender/blob/master/resources/upstart/docker-zabbix-sender.conf) available on the Github repository, configured to spawns the daemon as follow:
 
 ```shell
 docker-zabbix-sender -c /etc/zabbix/zabbix_agentd.conf --interval 30 --real-time
@@ -54,6 +56,29 @@ Most options are directly passed to `zabbix_sender` utility:
 * `--real-time` option tells `zabbix_sender` to push events to `zabbix_sender` as soon as `docker-zabbix-sender` emits them. They are not stored in a cache by `zabbix_sender`
 
 At last, the `--intervall` tells `docker-zabbix-sender` to emit events to `zabbix_sender` every 30 seconds.
+
+## As a Docker container
+
+Docker Zabbix Sender can also run as a Docker container. The latest stable installation is always available as a Docker container.
+
+### Prerequisites
+1. Install [Docker](https://www.docker.com/) 1.5 or higher.
+1. Download [automated build](https://registry.hub.docker.com/u/dockermeetupsinbordeaux/docker-zabbix-sender/): `docker pull dockermeetupsinbordeaux/docker-zabbix-sender`
+
+### Basic usage
+
+```shell
+docker run                                          \
+    -e ZABBIX_SERVER=<YOUR_ZABBIX_SERVER>           \
+    -e ZABBIX_HOST=<HOST_FQDN>                      \
+    -v /var/run/docker.sock:/var/run/docker.sock    \
+    dockermeetupsinbordeaux/docker-zabbix-sender
+```
+
+You need to provide some inputs to the container:
+1. Target Zabbix server where events must be published. Same than `Server` key in `/etc/zabbix/zabbix_agentd.conf`)
+2. Name of server used to publish events related to the Docker daemon. Same than `Hostname` key in `/etc/zabbix/zabbix_agentd.conf`
+1. Access to `/var/run/docker.sock` on host running the container to retrieve live statistics about running containers.
 
 # Provided metrics out of the box
 

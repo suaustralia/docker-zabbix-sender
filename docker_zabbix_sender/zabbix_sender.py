@@ -27,6 +27,7 @@ class ZabbixSenderProcess(subprocess.Popen):
             input_file,
             config_file=None,
             zabbix_server=None,
+            host=None,
             port=None,
             with_timestamps=False,
             real_time=False):
@@ -38,6 +39,8 @@ class ZabbixSenderProcess(subprocess.Popen):
             cmdline.extend(['--config', config_file])
         if zabbix_server:
             cmdline.extend(['--zabbix-server', zabbix_server])
+        if host:
+            cmdline.extend(['--host', host])
         if port:
             cmdline.extend(['--port', port])
         if with_timestamps:
@@ -116,6 +119,10 @@ def run(args=None):
         action='store_true',
         help="zabbix_sender push metrics to Zabbix one by one as soon as they are sent."
     )
+    parser.add_argument('-s', '--host',
+        metavar='<hostname>',
+        help='Specify host name. Host IP address and DNS name will not work'
+    )
     args = parser.parse_args(args)
     kwargs  = kwargs_from_env()
     if not args.tlsverify.lower() in ("yes", "true", "t", "1"):
@@ -129,6 +136,7 @@ def run(args=None):
         ZabbixSenderEndPoint(
             config_file=args.config,
             zabbix_server=args.zabbix_server,
+            host=args.host,
             port=args.port,
             real_time=args.real_time,
         ),

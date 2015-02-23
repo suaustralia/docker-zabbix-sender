@@ -17,13 +17,13 @@ ENV ZABBIX_SERVER zabbix.localdomain
 
 # Specify hostname of Zabbix events dedicated to the daemon
 # May be the FQDN or host running this container.
-ENV ZABBIX_DAEMON_HOST daemon.localdomain
+ENV ZABBIX_HOST daemon.localdomain
 
 # Container needs to access the socket on host
 VOLUME /var/run/docker.sock
 
 CMD /usr/local/bin/docker-zabbix-sender \
     -z "$ZABBIX_SERVER"                 \
-    -s "$ZABBIX_DAEMON_HOST"            \
+    -s "$ZABBIX_HOST"                   \
     -i 30                               \
     --real-time

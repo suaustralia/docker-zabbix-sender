@@ -7,7 +7,7 @@ Leverage Docker statistic streams to push containers info to Zabbix
 
 ## As a Docker container itself!
 
-The monitoring tool can also run inside a Docker container. An [automated build](https://registry.hub.docker.com/u/dockermeetupsinbordeaux/docker-zabbix-sender/) always provides the latest version.
+The monitoring tool can also run inside a Docker container. An [automated build](https://registry.hub.docker.com/u/dockermeetupsinbordeaux/docker-zabbix-sender/) always provides the latest stable version.
 
     docker pull dockermeetupsinbordeaux/docker-zabbix-sender
 

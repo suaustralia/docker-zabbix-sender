@@ -30,7 +30,8 @@ class ZabbixSenderProcess(subprocess.Popen):
             host=None,
             port=None,
             with_timestamps=False,
-            real_time=False):
+            real_time=False,
+            verbose=0):
         """
         :return collection containing the 'zabbix_sender' command line to execute.
         """
@@ -47,6 +48,10 @@ class ZabbixSenderProcess(subprocess.Popen):
             cmdline.append('--with-timestamps')
         if real_time:
             cmdline.append('--real-time')
+        print verbose
+        if verbose != 0:
+            cmdline.append('-' + 'v' * verbose)
+        print cmdline
         return cmdline
 
 
@@ -86,16 +91,21 @@ def run(args=None):
 
     from .version import version
     parser = argparse.ArgumentParser(
-        description="""Provides Zabbix Docker containers statistics running on a Docker daemon.""")
+        description="""Provides Zabbix Docker containers statistics running on a Docker daemon."""
+    )
+    parser.add_argument('-V', '--version',
+        action='version',
+        version='%(prog)s ' + version
+    )
+    parser.add_argument('-v', '--verbose',
+        action='count',
+        help='Verbose mode, -vv for more details'
+    )
     parser.add_argument("--tlsverify",
         action='store',
         choices=["true", "false"],
         default='true',
         help="Use TLS and verify the remote Docker daemon. Default is %(default)s"
-    )
-    parser.add_argument('-V', '--version',
-        action='version',
-        version='%(prog)s ' + version
     )
     parser.add_argument('-c', '--config',
         metavar="<file>",
@@ -139,6 +149,7 @@ def run(args=None):
             host=args.host,
             port=args.port,
             real_time=args.real_time,
+            verbose=args.verbose if args.verbose is not None else 0
         ),
         args.interval)
     def _stop_emitter(signum, frame):

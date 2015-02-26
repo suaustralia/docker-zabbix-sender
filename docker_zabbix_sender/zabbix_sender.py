@@ -183,6 +183,10 @@ def run(args=None):
     kwargs['version'] = '1.17'
     docker_client = Client(**kwargs)
     docker_client.info()
+    if args.zabbix_server is None:
+        args.zabbix_server = os.environ['ZABBIX_SERVER']
+    if args.host is None:
+        args.host = os.environ['ZABBIX_HOST']
 
     emitter = ContainerStatsEmitter(
         docker_client,

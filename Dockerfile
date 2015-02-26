@@ -22,4 +22,4 @@ ENV ZABBIX_HOST daemon.localdomain
 # Container needs to access the socket on host
 VOLUME /var/run/docker.sock
 
-ENTRYPOINT /usr/local/bin/docker-zabbix-sender -z "$ZABBIX_SERVER" -s "$ZABBIX_HOST"
+CMD "docker-zabbix-sender"

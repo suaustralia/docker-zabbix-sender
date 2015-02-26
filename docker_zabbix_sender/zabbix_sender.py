@@ -141,7 +141,6 @@ def run(args=None):
     docker_client = Client(**kwargs)
     docker_client.info()
 
-    from zabbix_sender import ZabbixSenderEndPoint
     emitter = ContainerStatsEmitter(
         docker_client,
         ZabbixSenderEndPoint(

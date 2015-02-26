@@ -54,13 +54,56 @@ class ZabbixSenderProcess(subprocess.Popen):
         print cmdline
         return cmdline
 
+def get_zabbix_hostname_from_config(config_file):
+    """Look for the hostname in Zabbix agent configuration file and returns it.
+
+    Best match is value of 'Hostname' key, 'HostnameItem' otherwise.
+
+    :param config_file: zabbix agent config file. 
+    Should be "/etc/zabbix/zabbix_agent.conf" unless you have an exotic installation
+
+    Throws Exception if both key are not defined.
+    """
+    import ConfigParser
+    class FakeSecHead(object):
+        def __init__(self, fp):
+            self.fp = fp
+            self.sechead = '[asection]\n'
+
+        def readline(self):
+            if self.sechead:
+                try:
+                    return self.sechead
+                finally:
+                    self.sechead = None
+            else:
+                return self.fp.readline()
+    with open(config_file) as istr:
+        cp = ConfigParser.ConfigParser()
+        cp.readfp(FakeSecHead(istr))
+        try:
+            return cp.get('asection', 'Hostname')
+        except:
+            pass
+        try:
+            return cp.get('asection', 'HostnameItem')
+        except:
+            raise Exception("Couldn't find either 'Hostname' and 'HostnameItem' in configuration file: %s" % config_file)
+
 
 class ZabbixSenderEndPoint(EndPoint):
     def __init__(self, **kwargs):
         """
         :param kwargs: optional arguments given to the `zabbix_sender` function.
         """
-        EndPoint.__init__(self)
+        docker_daemon = kwargs.get('host')
+        if docker_daemon is None:
+            zabbix_agent_config = kwargs.get('config_file')
+            if zabbix_agent_config is None:
+                raise Exception("Invalid parameters: needs 'host' or 'config_file'")
+            else:
+                docker_daemon = get_zabbix_hostname_from_config(zabbix_agent_config)
+        EndPoint.__init__(self, docker_daemon)
         self.zabbix_sender_p = ZabbixSenderProcess(
             input_file='-',
             with_timestamps=True,

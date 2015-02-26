@@ -57,7 +57,7 @@ def cpu_count(host_fqdn, docker_client, statistics):
     """
     for stat in statistics:
         yield {
-            'hostname': EndPoint.container_hostname(stat['name']),
+            'hostname': EndPoint.container_hostname(host_fqdn, stat['name']),
             'timestamp': stat['timestamp'],
             'key': EndPoint.EVENT_KEY_PREFIX + 'cpu.count',
             'value': len(stat['cpu_stats']['cpu_usage']['percpu_usage']),

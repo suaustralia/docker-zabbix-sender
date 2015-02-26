@@ -76,8 +76,8 @@ docker run                                          \
 ```
 
 You need to provide some inputs to the container:
-1. Target Zabbix server where events must be published. Same than `Server` key in `/etc/zabbix/zabbix_agentd.conf`)
-2. Name of server used to publish events related to the Docker daemon. Same than `Hostname` key in `/etc/zabbix/zabbix_agentd.conf`
+1. **ZABBIX_SERVER**: Target Zabbix server where events must be published. Same than `Server` key in `/etc/zabbix/zabbix_agentd.conf`)
+2. **ZABBIX_HOST**: FQDN server used to publish Zabbix events related to the Docker daemon. Same than `Hostname` key in `/etc/zabbix/zabbix_agentd.conf`
 1. Access to `/var/run/docker.sock` on host running the container to retrieve live statistics about running containers.
 
 # Provided metrics out of the box

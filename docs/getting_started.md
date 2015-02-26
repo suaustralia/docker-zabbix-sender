@@ -1,6 +1,6 @@
 # Getting started
 
-This page describes the installation procedure to see Docker Zabbix Sender  feeding Zabbix with information about your Docker containers.
+This page describes the step-by-step procedure to install and use Docker Zabbix Sender.
 
 Some commands below supposes your are running on Linux.
 
@@ -11,6 +11,8 @@ You may have:
 * a machine to install Docker (with root privileges), let's say: docker-daemon.acme.com
 
 ## Installation
+
+**You can skip this section if you use Docker Zabbix Sender as a Docker container**
 
 1. Install Docker 1.5 or higher.
 1. Install Zabbix agent. There is an official `zabbix-agent` package on most distribution. Makes sure the `zabbix-sender` executable is in your `PATH` environment variable.
@@ -58,10 +60,22 @@ There are a couple of [Zabbix templates](https://github.com/dockermeetupsinborde
     
     Note: you will have to specify an agent for those hosts. Zabbix won't talk directly to those machines, so you can put anything you want (the docker-daemon.acme.com IP address for instance)
 3. Add the `Docker container` template to those 3 hosts.
-4. Add the `docker-daemon.acme.com` host is not already registered
+4. Add the `docker-daemon.acme.com` host if not already registered
 5. Register the `Docker daemon` template to `docker-daemon.acme.com`
 
 ## First start
+
+### Running as Docker Container
+
+```shell
+docker run                                          \
+    -e ZABBIX_SERVER=zabbix.acme.com>               \
+    -e ZABBIX_HOST=docker-daemon.acme.com           \
+    -v /var/run/docker.sock:/var/run/docker.sock    \
+    dockermeetupsinbordeaux/docker-zabbix-sender
+```
+
+### Installed on a bare-metal server
 
 Run the `docker-zabbix-sender` command as `root` (required to deal with Docker API):
 
@@ -88,4 +102,4 @@ Keep it running and observe the peak on Zabbix.
 
 ## Further readings
 
-You may start with the [Daemon page](daemon.md) to get more insight about it.
+You may start with the [Daemon page](daemon.md) to get more insight about it, especially about the various options you can pass.

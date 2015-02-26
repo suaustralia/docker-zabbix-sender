@@ -1,21 +1,33 @@
 # Docker Zabbix Sender Documentation
 Leverage Docker `stats` live streams to push containers statistics to Zabbix.
 
-Docker Zabbix Sender is a Python module that allows you to monitor Docker containers with Zabbix.
+Docker Zabbix Sender is available as a Docker container itself. It is also delivered as a Python module to install it manually on a server.
 
-# Installation
+## Requirements
+Docker Zabbix Sender requires Docker 1.5 or higher. It leverages the new `stats` API call available in Docker Remote API version 17 to get live streams of containers statistics.
+
+# How to use the Docker container?
+
+```shell
+docker run                                          \
+    -e ZABBIX_SERVER=<YOUR_ZABBIX_SERVER>           \
+    -e ZABBIX_HOST=<HOST_FQDN>                      \
+    -v /var/run/docker.sock:/var/run/docker.sock    \
+    dockermeetupsinbordeaux/docker-zabbix-sender
+```
+
+See [Command line interface](daemon#Command line interface) for possible options.
+
+# How to use the distributed Python module?
+
+## Installation
 The latest stable installation is always available on PyPi.
 
 ```shell
 pip install zabbix-containers-sender
 ```
 
-# Requirements
-Docker Zabbix Sender requires Docker 1.5 or higher. It leverages the new `stats` API call available in Docker Remote API version 17 to get live streams of containers statistics.
-
-It also needs a Zabbix agent installed and properly configured (but not necessarily running).
-
-# Getting started
+## Getting started
 
 You may follow the [Getting started tutorial](getting_started.md) to know more about it.
 

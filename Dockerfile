@@ -13,7 +13,7 @@ RUN pip install .
 # REQUIRED INPUTS
 
 # Hostname or IP address of Zabbix server
-ENV ZABBIX_SERVER zabbix.localdomain
+ENV ZABBIX_SERVER zabbix-server
 
 # Specify hostname of Zabbix events dedicated to the daemon
 # May be the FQDN or host running this container.

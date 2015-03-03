@@ -80,6 +80,22 @@ You need to provide some inputs to the container:
 2. **ZABBIX_HOST**: FQDN server used to publish Zabbix events related to the Docker daemon. Same than `Hostname` key in `/etc/zabbix/zabbix_agentd.conf`
 1. Access to `/var/run/docker.sock` on host running the container to retrieve live statistics about running containers.
 
+### Zabbix server in a container
+
+If your Zabbix server is running in a container you can take advantage of Docker links:
+
+```shell
+docker run                                          \
+    --link your-zabbix-container:zabbix-server      \
+    -e ZABBIX_HOST=<HOST_FQDN>                      \
+    -v /var/run/docker.sock:/var/run/docker.sock    \
+    dockermeetupsinbordeaux/docker-zabbix-sender
+```
+
+You need to provide some inputs to the container:
+1. **ZABBIX_HOST**: FQDN server used to publish Zabbix events related to the Docker daemon. Same than `Hostname` key in `/etc/zabbix/zabbix_agentd.conf`
+1. Access to `/var/run/docker.sock` on host running the container to retrieve live statistics about running containers.
+
 # Provided metrics out of the box
 
 The following Zabbix template provides events for every metric specified below.

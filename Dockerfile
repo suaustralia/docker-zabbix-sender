@@ -10,16 +10,15 @@ RUN apt-get update && apt-get install -y zabbix-agent && apt-get clean
 # Install module
 RUN pip install .
 
+# Install entry-point script
+ADD docker-entry-point.sh /usr/local/bin/docker-entry-point.sh
+
 # REQUIRED INPUTS
 
 # Hostname or IP address of Zabbix server
 ENV ZABBIX_SERVER zabbix-server
 
-# Specify hostname of Zabbix events dedicated to the daemon
-# May be the FQDN or host running this container.
-ENV ZABBIX_HOST daemon.localdomain
-
 # Container needs to access the socket on host
 VOLUME /var/run/docker.sock
 
-CMD "docker-zabbix-sender"
+ENTRYPOINT [ "docker-entry-point.sh" ]

@@ -51,7 +51,6 @@ class ZabbixSenderProcess(subprocess.Popen):
         print verbose
         if verbose != 0:
             cmdline.append('-' + 'v' * verbose)
-        print cmdline
         return cmdline
 
 def get_zabbix_hostname_from_config(config_file):

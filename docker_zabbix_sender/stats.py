@@ -5,7 +5,7 @@
 import time
 from . import EndPoint
 
-def containers_count(host_fqdn, docker_client, statistics):
+def container_count(host_fqdn, docker_client, statistics):
     """
     Emit events providing:
       - number of containers
@@ -52,6 +52,19 @@ def containers_count(host_fqdn, docker_client, statistics):
         for key, value in data.items()
     ]
 
+def container_ip(host_fqdn, docker_client, statistics):
+    """Emit the ip addresses of containers.
+    """
+    for stat in statistics:
+        containerId = stat['id']
+        details = docker_client.inspect_container(containerId)
+        yield {
+            'hostname': EndPoint.container_hostname(host_fqdn, stat['name']),
+            'timestamp': stat['timestamp'],
+            'key': EndPoint.EVENT_KEY_PREFIX + 'ip',
+            'value': details['NetworkSettings']['IPAddress']
+        }
+
 def cpu_count(host_fqdn, docker_client, statistics):
     """Emit the number of CPU available for each container.
     """
@@ -60,5 +73,5 @@ def cpu_count(host_fqdn, docker_client, statistics):
             'hostname': EndPoint.container_hostname(host_fqdn, stat['name']),
             'timestamp': stat['timestamp'],
             'key': EndPoint.EVENT_KEY_PREFIX + 'cpu.count',
-            'value': len(stat['cpu_stats']['cpu_usage']['percpu_usage']),
+            'value': len(stat['cpu_stats']['cpu_usage']['percpu_usage'])
         }

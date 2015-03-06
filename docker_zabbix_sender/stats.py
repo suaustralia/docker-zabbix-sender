@@ -5,7 +5,7 @@
 import time
 from . import EndPoint
 
-def containers_count(host_fqdn, docker_client, statistics):
+def container_count(host_fqdn, docker_client, statistics):
     """
     Emit events providing:
       - number of containers

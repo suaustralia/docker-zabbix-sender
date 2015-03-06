@@ -16,18 +16,15 @@ docker run                                          \
     dockermeetupsinbordeaux/docker-zabbix-sender
 ```
 
-See [Command line interface](daemon#Command line interface) for possible options.
-
 # How to use the distributed Python module?
 
-## Installation
 The latest stable installation is always available on PyPi.
 
 ```shell
 pip install zabbix-containers-sender
 ```
 
-## Getting started
+# Getting started
 
 You may follow the [Getting started tutorial](getting_started.md) to know more about it.
 

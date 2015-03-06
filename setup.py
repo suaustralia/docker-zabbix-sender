@@ -75,5 +75,6 @@ setup(
         [docker_zabbix_sender.metrics]
         container-count = docker_zabbix_sender.stats:container_count
         cpu-count = docker_zabbix_sender.stats:cpu_count
+        container-ip = docker_zabbix_sender.stats:container_ip
     """
 )

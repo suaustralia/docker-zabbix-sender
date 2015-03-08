@@ -52,6 +52,7 @@ docker-zabbix-sender -c /etc/zabbix/zabbix_agentd.conf --interval 30 --real-time
 ```
 
 Most options are directly passed to `zabbix_sender` utility:
+
 * `-c` option provides location of Zabbix agent configuration. It allows `zabbix_sender` to figure what the Zabbix server is ...
 * `--real-time` option tells `zabbix_sender` to push events to `zabbix_sender` as soon as `docker-zabbix-sender` emits them. They are not stored in a cache by `zabbix_sender`
 
@@ -62,6 +63,7 @@ At last, the `--intervall` tells `docker-zabbix-sender` to emit events to `zabbi
 Docker Zabbix Sender can also run as a Docker container. The latest stable installation is always available as a Docker container.
 
 ### Prerequisites
+
 1. Install [Docker](https://www.docker.com/) 1.5 or higher.
 1. Download [automated build](https://registry.hub.docker.com/u/dockermeetupsinbordeaux/docker-zabbix-sender/): `docker pull dockermeetupsinbordeaux/docker-zabbix-sender`
 
@@ -76,6 +78,7 @@ docker run                                          \
 ```
 
 You need to provide some inputs to the container:
+
 1. **ZABBIX_SERVER**: Target Zabbix server where events must be published. Same than `Server` key in `/etc/zabbix/zabbix_agentd.conf`)
 2. **ZABBIX_HOST**: FQDN server used to publish Zabbix events related to the Docker daemon. Same than `Hostname` key in `/etc/zabbix/zabbix_agentd.conf`
 1. Access to `/var/run/docker.sock` on host running the container to retrieve live statistics about running containers.
@@ -93,6 +96,7 @@ docker run                                          \
 ```
 
 You need to provide some inputs to the container:
+
 1. **ZABBIX_HOST**: FQDN server used to publish Zabbix events related to the Docker daemon. Same than `Hostname` key in `/etc/zabbix/zabbix_agentd.conf`
 1. Access to `/var/run/docker.sock` on host running the container to retrieve live statistics about running containers.
 

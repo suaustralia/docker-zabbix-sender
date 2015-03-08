@@ -20,6 +20,7 @@ You may have:
     * Server=zabbix.acme.com
     * Hostname=docker.acme.com
 1. Install latest version of `docker-zabbix-sender`.
+    
     ```shell
     pip install docker-zabbix-sender
     ```

@@ -140,6 +140,9 @@ For each container, the daemon will provide the following information:
     - zabbix_key: *docker.container.memory.percent*
     - unit: percentage
     - type: Numeric (float)
+* IP address:
+    - zabbix_key: *docker.container.ip*
+    - type: Text
 * Network packet received, in bytes
     - zabbix key: *docker.container.network_rx*
     - unit: bytes

@@ -32,7 +32,7 @@ class ContainerStats(threading.Thread):
         """
         threading.Thread.__init__(self)
         self.container = container
-        self.name = docker.inspect_container(container)['Name'][1:]
+        self.name = docker.inspect_container(container)['Config']['Hostname']
         self.user_cpu_percent = 0.0
         self.kernel_cpu_percent = 0.0
         self.memory = 0.0

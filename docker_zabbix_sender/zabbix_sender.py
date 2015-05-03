@@ -179,7 +179,7 @@ def run(args=None):
     kwargs  = kwargs_from_env()
     if not args.tlsverify.lower() in ("yes", "true", "t", "1"):
         kwargs['tls'].assert_hostname = False
-    kwargs['version'] = '1.17'
+    kwargs['version'] = 'auto'
     docker_client = Client(**kwargs)
     docker_client.info()
     if args.zabbix_server is None:

@@ -5,7 +5,7 @@ MAINTAINER Tristan CAREL <tristan.carel@gmail.com>
 # the code and install dependencies
 
 # Install zabbix_sender utility
-RUN apt-get update && apt-get install -y zabbix-agent && apt-get clean
+RUN apt-get -qq update && apt-get install -qqy zabbix-agent && apt-get clean
 
 # Install module
 RUN pip install .

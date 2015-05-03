@@ -1,0 +1,72 @@
+{
+  'io_wait_time_recursive': [],
+  'io_serviced_recursive': [
+    {
+      'major': 8,
+      'value': 262,
+      'minor': 0,
+      'op': 'Read'
+    },
+    {
+      'major': 8,
+      'value': 4595,
+      'minor': 0,
+      'op': 'Write'
+    },
+    {
+      'major': 8,
+      'value': 0,
+      'minor': 0,
+      'op': 'Sync'
+    },
+    {
+      'major': 8,
+      'value': 4857,
+      'minor': 0,
+      'op': 'Async'
+    },
+    {
+      'major': 8,
+      'value': 4857,
+      'minor': 0,
+      'op': 'Total'
+    }
+  ],
+  'io_merged_recursive': [],
+  'io_service_bytes_recursive': [
+    {
+      'major': 8,
+      'value': 1523712,
+      'minor': 0,
+      'op': 'Read'
+    },
+    {
+      'major': 8,
+      'value': 352485376,
+      'minor': 0,
+      'op': 'Write'
+    },
+    {
+      'major': 8,
+      'value': 0,
+      'minor': 0,
+      'op': 'Sync'
+    },
+    {
+      'major': 8,
+      'value': 354009088,
+      'minor': 0,
+      'op': 'Async'
+    },
+    {
+      'major': 8,
+      'value': 354009088,
+      'minor': 0,
+      'op': 'Total'
+    }
+  ],
+  'sectors_recursive': [],
+  'io_service_time_recursive': [],
+  'io_time_recursive': [],
+  'io_queue_recursive': []
+}

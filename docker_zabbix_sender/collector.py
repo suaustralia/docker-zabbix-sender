@@ -1,6 +1,5 @@
 # encoding: utf-8
 
-import json
 import logging
 import time
 import threading
@@ -53,7 +52,6 @@ class ContainerStats(threading.Thread):
         """
         previous_user_cpu = 0.0
         previous_kernel_cpu = 0.0
-        previous_total_cpu = 0.0
         previous_system = 0.0
         previous_network_rx = 0.0
         previous_network_tx = 0.0
@@ -92,7 +90,6 @@ class ContainerStats(threading.Thread):
                 self._lock.release()
                 previous_user_cpu = stats['cpu_stats']['cpu_usage']['usage_in_usermode']
                 previous_kernel_cpu = stats['cpu_stats']['cpu_usage']['usage_in_kernelmode']
-                previous_total_cpu = stats['cpu_stats']['cpu_usage']['total_usage']
                 previous_system = stats['cpu_stats']['system_cpu_usage']
                 previous_network_rx = float(stats['network']['rx_bytes'])
                 previous_network_tx = float(stats['network']['tx_bytes'])

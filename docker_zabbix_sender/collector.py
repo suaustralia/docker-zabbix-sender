@@ -1,6 +1,8 @@
 # encoding: utf-8
 
 import logging
+from exceptions import AttributeError
+from requests.packages.urllib3.exceptions import ReadTimeoutError
 import time
 import threading
 
@@ -124,7 +126,7 @@ class ContainerStats(threading.Thread):
                 previous_system = stats['cpu_stats']['system_cpu_usage']
                 previous_network_rx = float(stats['network']['rx_bytes'])
                 previous_network_tx = float(stats['network']['tx_bytes'])
-        except AttributeError:
+        except (AttributeError, ReadTimeoutError):
             # raise in urllib3 when the stream is closed while waiting for stuff to read
             pass
         finally:

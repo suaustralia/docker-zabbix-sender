@@ -58,7 +58,7 @@ def get_zabbix_hostname_from_config(config_file):
 
     Best match is value of 'Hostname' key, 'HostnameItem' otherwise.
 
-    :param config_file: zabbix agent config file. 
+    :param config_file: zabbix agent config file.
     Should be "/etc/zabbix/zabbix_agent.conf" unless you have an exotic installation
 
     Throws Exception if both key are not defined.
@@ -116,6 +116,9 @@ class ZabbixSenderEndPoint(EndPoint):
         if events[0].has_key('timestamp'):
             fmt = "{hostname} {key} {timestamp} {value}\n"
         for event in events:
+            # Prevent empty string from crashing zabbix-sender
+            if event['value'] == "":
+                event['value'] = '""'
             self.zabbix_sender_p.stdin.write(fmt.format(**event))
 
     def close(self):
@@ -179,7 +182,7 @@ def run(args=None):
     kwargs  = kwargs_from_env()
     if not args.tlsverify.lower() in ("yes", "true", "t", "1"):
         kwargs['tls'].assert_hostname = False
-    kwargs['version'] = '1.17'
+    kwargs['version'] = 'auto'
     docker_client = Client(**kwargs)
     docker_client.info()
     if args.zabbix_server is None:

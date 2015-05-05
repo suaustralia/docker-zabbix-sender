@@ -1,7 +1,8 @@
 # encoding: utf-8
 
-import json
 import logging
+from exceptions import AttributeError
+from requests.packages.urllib3.exceptions import ReadTimeoutError
 import time
 import threading
 
@@ -40,6 +41,16 @@ class ContainerStats(threading.Thread):
         self.memory_percent = 0.0
         self.network_rx = 0.0
         self.network_tx = 0.0
+        self.io_bytes_read = 0
+        self.io_bytes_write = 0
+        self.io_bytes_sync = 0
+        self.io_bytes_async = 0
+        self.io_bytes_total = 0
+        self.io_operations_read = 0
+        self.io_operations_write = 0
+        self.io_operations_sync = 0
+        self.io_operations_async = 0
+        self.io_operations_total = 0
         self.stats = None
         self.timestamp = int(time.time())
         self._docker = docker
@@ -53,7 +64,6 @@ class ContainerStats(threading.Thread):
         """
         previous_user_cpu = 0.0
         previous_kernel_cpu = 0.0
-        previous_total_cpu = 0.0
         previous_system = 0.0
         previous_network_rx = 0.0
         previous_network_tx = 0.0
@@ -78,7 +88,9 @@ class ContainerStats(threading.Thread):
                         previous_system,
                         stats
                     )
+
                 start = False
+
                 self._lock.acquire_write()
                 self.timestamp = stats['timestamp']
                 self.stats = stats
@@ -89,14 +101,32 @@ class ContainerStats(threading.Thread):
                 self.memory_percent = mem_percent
                 self.network_rx = float(stats['network']['rx_bytes']) - previous_network_rx
                 self.network_tx = float(stats['network']['tx_bytes']) - previous_network_tx
+                io_bytes = self._extract_block_io(stats['blkio_stats']['io_service_bytes_recursive'])
+                io_operations = self._extract_block_io(stats['blkio_stats']['io_serviced_recursive'])
                 self._lock.release()
+
+                # Store IO values
+                if io_bytes:
+                    self.io_bytes_read = io_bytes['Read']
+                    self.io_bytes_write = io_bytes['Write']
+                    self.io_bytes_sync = io_bytes['Sync']
+                    self.io_bytes_async = io_bytes['Async']
+                    self.io_bytes_total = io_bytes['Total']
+
+                if io_operations:
+                    self.io_operations_read = io_operations['Read']
+                    self.io_operations_write = io_operations['Write']
+                    self.io_operations_sync = io_operations['Sync']
+                    self.io_operations_async = io_operations['Async']
+                    self.io_operations_total = io_operations['Total']
+
+                # Update previous values
                 previous_user_cpu = stats['cpu_stats']['cpu_usage']['usage_in_usermode']
                 previous_kernel_cpu = stats['cpu_stats']['cpu_usage']['usage_in_kernelmode']
-                previous_total_cpu = stats['cpu_stats']['cpu_usage']['total_usage']
                 previous_system = stats['cpu_stats']['system_cpu_usage']
                 previous_network_rx = float(stats['network']['rx_bytes'])
                 previous_network_tx = float(stats['network']['tx_bytes'])
-        except AttributeError:
+        except (AttributeError, ReadTimeoutError):
             # raise in urllib3 when the stream is closed while waiting for stuff to read
             pass
         finally:
@@ -150,6 +180,17 @@ class ContainerStats(threading.Thread):
                 kernel_cpu_percent = (kernel_cpu_delta / system_delta) * float(len(stats['cpu_stats']['cpu_usage']['percpu_usage'])) * 100.0
         return user_cpu_percent, kernel_cpu_percent
 
+
+    @staticmethod
+    def _extract_block_io(stats):
+        """Extract the Read, Write, Sync, Async and Total values from value/op array
+        """
+        result = {}
+
+        for s in stats:
+            result[str(s['op'])] = int(s['value'])
+
+        return result
 
 class ContainerStatsEmitter(threading.Thread):
     """Maintain a list of `ContainerStats` collecting metrics of several Docker containers.
@@ -207,6 +248,16 @@ class ContainerStatsEmitter(threading.Thread):
                         'memory.percent': stats.memory_percent,
                         'network_rx': stats.network_rx,
                         'network_tx': stats.network_tx,
+                        'io_bytes_read': stats.io_bytes_read,
+                        'io_bytes_write': stats.io_bytes_write,
+                        'io_bytes_sync': stats.io_bytes_sync,
+                        'io_bytes_async': stats.io_bytes_async,
+                        'io_bytes_total': stats.io_bytes_total,
+                        'io_operations_read': stats.io_operations_read,
+                        'io_operations_write': stats.io_operations_write,
+                        'io_operations_sync': stats.io_operations_sync,
+                        'io_operations_async': stats.io_operations_async,
+                        'io_operations_total': stats.io_operations_total,
                         'timestamp': stats.timestamp,
                     })
                 for stats in container_stats.values():

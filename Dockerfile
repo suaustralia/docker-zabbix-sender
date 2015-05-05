@@ -7,7 +7,10 @@ MAINTAINER Tristan CAREL <tristan.carel@gmail.com>
 # Install zabbix_sender utility
 RUN wget -q http://repo.zabbix.com/zabbix/2.4/debian/pool/main/z/zabbix-release/zabbix-release_2.4-1+wheezy_all.deb && \
     dpkg -i zabbix-release_2.4-1+wheezy_all.deb && \
-    apt-get -qq update && apt-get install -qqy zabbix-sender && apt-get clean && rm -f zabbix-release_2.4-1+wheezy_all.deb
+    apt-get -qq update && \
+    apt-get install -qqy zabbix-sender && \
+    apt-get clean && \
+    rm -f zabbix-release_2.4-1+wheezy_all.deb
 
 # Install module
 RUN pip install .

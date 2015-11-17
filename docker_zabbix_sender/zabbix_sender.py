@@ -48,7 +48,6 @@ class ZabbixSenderProcess(subprocess.Popen):
             cmdline.append('--with-timestamps')
         if real_time:
             cmdline.append('--real-time')
-        print verbose
         if verbose != 0:
             cmdline.append('-' + 'v' * verbose)
         return cmdline

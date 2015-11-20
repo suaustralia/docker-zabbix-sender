@@ -99,8 +99,25 @@ class ContainerStats(threading.Thread):
                 self.memory = float(stats['memory_stats']['usage'])
                 self.memory_limit = float(stats['memory_stats']['limit'])
                 self.memory_percent = mem_percent
-                self.network_rx = float(stats['network']['rx_bytes']) - previous_network_rx
-                self.network_tx = float(stats['network']['tx_bytes']) - previous_network_tx
+
+                current_rx = previous_network_rx
+                current_tx = previous_network_tx
+
+                if 'network' in stats:
+                    # API v1.20 and earlier: only one network
+                    current_rx = float(stats['network']['rx_bytes'])
+                    current_tx = float(stats['network']['tx_bytes'])
+                elif 'networks' in stats:
+                    # API v1.21 and after: multiple networks
+                    current_rx = 0.0
+                    current_tx = 0.0
+                    for net in stats['networks'].values():
+                        self.network_rx += float(net['rx_bytes'])
+                        self.network_tx += float(net['tx_bytes'])
+
+                self.network_rx = current_rx - previous_network_rx
+                self.network_tx = current_tx - previous_network_tx
+
                 io_bytes = self._extract_block_io(stats['blkio_stats']['io_service_bytes_recursive'])
                 io_operations = self._extract_block_io(stats['blkio_stats']['io_serviced_recursive'])
                 self._lock.release()
@@ -124,8 +141,8 @@ class ContainerStats(threading.Thread):
                 previous_user_cpu = stats['cpu_stats']['cpu_usage']['usage_in_usermode']
                 previous_kernel_cpu = stats['cpu_stats']['cpu_usage']['usage_in_kernelmode']
                 previous_system = stats['cpu_stats']['system_cpu_usage']
-                previous_network_rx = float(stats['network']['rx_bytes'])
-                previous_network_tx = float(stats['network']['tx_bytes'])
+                previous_network_rx = current_rx
+                previous_network_tx = current_tx
         except (AttributeError, ReadTimeoutError):
             # raise in urllib3 when the stream is closed while waiting for stuff to read
             pass

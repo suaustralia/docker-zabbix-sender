@@ -15,7 +15,7 @@ The monitoring tool can also run inside a Docker container. An [automated build]
 The latest stable installation is always available on PyPi.
 
 ```shell
-pip install zabbix-containers-sender
+pip install docker-zabbix-sender
 ```
 
 # Documentation

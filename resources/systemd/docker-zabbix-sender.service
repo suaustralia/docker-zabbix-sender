@@ -1,0 +1,12 @@
+[Unit]
+Description=Docker Zabbix Sender
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/docker-zabbix-sender -c /etc/zabbix/zabbix_agentd.conf --interval 30 --real-time -z ZABBIX_SERVER -s DOCKER_HOST
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

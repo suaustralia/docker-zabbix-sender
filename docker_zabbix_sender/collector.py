@@ -69,8 +69,11 @@ class ContainerStats(threading.Thread):
         previous_network_tx = 0.0
         start = True
         url = self._docker._url("/containers/{0}/stats".format(self.container))
-        self._response = self._docker._get(url, stream=True)
-        stream = self._docker._stream_helper(self._response, decode=True)
+        try:
+            self._response = self._docker._get(url, stream=True)
+            stream = self._docker._stream_helper(self._response, decode=True)
+        finally:
+            self.shutdown()
         try:
             for stats in stream:
                 stats['timestamp']= int(time.time())

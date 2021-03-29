@@ -51,7 +51,7 @@ setup(
     keywords="docker zabbix monitoring",
     packages=['docker_zabbix_sender'],
     install_requires=[
-        'docker-py >= 1.2.0',
+        'docker >= 4.0.0',
     ],
     zip_safe=False,
     license="Apache license version 2.0",

@@ -100,7 +100,7 @@ class EndPoint(object):
         for name, collector in self.metrics_plugins.items():
             try:
                 events.extend(collector(self._host, client, statistics))
-            except Exception, e:
+            except Exception as e:
                 self._logger.exception("Could not collect metrics from plugin %s", name)
 
     def _load_metrics_plugins(self):

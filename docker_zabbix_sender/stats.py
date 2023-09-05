@@ -16,7 +16,7 @@ def container_count(host_fqdn, docker_client, statistics):
     :type host_fqdn: string
 
     :param docker_client: instance of docker.Client see http://docker-py.readthedocs.org/en/latest/api/
-    :type docker_client: docker.Client
+    :type docker_client: docker.DockerClient
 
     :param statistics: List of dicts providing collected container statistics. see Docker stats API call on https://docs.docker.com/reference/api/docker_remote_api_v1.17/#get-container-stats-based-on-resource-usage
 

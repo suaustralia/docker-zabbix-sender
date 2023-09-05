@@ -1,12 +1,11 @@
 # encoding: utf-8
 
 import logging
-from exceptions import AttributeError
 from requests.packages.urllib3.exceptions import ReadTimeoutError
 import time
 import threading
 
-from docker import Client
+from docker import DockerClient
 
 from .RWLock import RWLock
 
@@ -29,7 +28,7 @@ class ContainerStats(threading.Thread):
         :param container: The Docker container identifier to monitor.
 
         :param docker: Docker client
-        :type docker: Client
+        :type docker: DockerClient
         """
         threading.Thread.__init__(self)
         self.container = container

@@ -8,7 +8,7 @@ import signal
 import sys
 import tempfile
 
-from docker import Client
+from docker import DockerClient
 from docker.utils import kwargs_from_env
 
 from .endpoint import EndPoint
@@ -182,7 +182,7 @@ def run(args=None):
     if not args.tlsverify.lower() in ("yes", "true", "t", "1"):
         kwargs['tls'].assert_hostname = False
     kwargs['version'] = 'auto'
-    docker_client = Client(**kwargs)
+    docker_client = DockerClient(**kwargs)
     docker_client.info()
     if args.zabbix_server is None:
         args.zabbix_server = os.environ['ZABBIX_SERVER']
